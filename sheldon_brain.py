@@ -808,37 +808,55 @@ class SheldonBrain:
 
         return ctx
 
-    def _call_claude(self, system: str, messages: list) -> Optional[dict]:
-        """Call Anthropic API via urllib (no SDK dependency)."""
-        try:
-            body = json.dumps({
-                "model": "claude-sonnet-4-20250514",
-                "max_tokens": 4096,
-                "system": system,
-                "messages": messages,
-                "tools": SHELDON_TOOLS
-            }).encode()
+    def _call_claude(self, system: str, messages: list, tools: list = None) -> Optional[dict]:
+        """Call Anthropic API via urllib (no SDK dependency). Retries on 429/529."""
+        import time
+        if tools is None:
+            tools = SHELDON_TOOLS
 
-            req = urllib.request.Request(
-                "https://api.anthropic.com/v1/messages",
-                data=body,
-                headers={
-                    "Content-Type": "application/json",
-                    "x-api-key": self.api_key,
-                    "anthropic-version": "2023-06-01"
-                }
-            )
+        body_dict = {
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 4096,
+            "system": system,
+            "messages": messages,
+        }
+        if tools:
+            body_dict["tools"] = tools
 
-            with urllib.request.urlopen(req, timeout=120) as resp:
-                return json.loads(resp.read().decode())
+        body = json.dumps(body_dict).encode()
 
-        except urllib.error.HTTPError as e:
-            error_body = e.read().decode()[:500]
-            print(f"Claude API HTTP error {e.code}: {error_body}")
-            return None
-        except Exception as e:
-            print(f"Claude API error: {e}")
-            return None
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                req = urllib.request.Request(
+                    "https://api.anthropic.com/v1/messages",
+                    data=body,
+                    headers={
+                        "Content-Type": "application/json",
+                        "x-api-key": self.api_key,
+                        "anthropic-version": "2023-06-01"
+                    }
+                )
+
+                with urllib.request.urlopen(req, timeout=120) as resp:
+                    return json.loads(resp.read().decode())
+
+            except urllib.error.HTTPError as e:
+                error_body = e.read().decode()[:500]
+                print(f"Claude API HTTP error {e.code} (attempt {attempt + 1}/{max_retries}): {error_body}")
+                if e.code in (429, 529) and attempt < max_retries - 1:
+                    wait = (attempt + 1) * 5  # 5s, 10s
+                    print(f"  Retrying in {wait}s...")
+                    time.sleep(wait)
+                    continue
+                return None
+            except Exception as e:
+                print(f"Claude API error (attempt {attempt + 1}/{max_retries}): {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(5)
+                    continue
+                return None
+        return None
 
     def _execute_tool(self, tool_name: str, params: dict) -> dict:
         """Route tool call to the appropriate handler."""
@@ -1450,7 +1468,7 @@ One sentence. The single most important thing Dennis should focus on today and w
         system = build_system_prompt()
         messages = [{"role": "user", "content": brief_prompt}]
 
-        response = self._call_claude(system, messages)
+        response = self._call_claude(system, messages, tools=[])
 
         if response is None:
             return {
