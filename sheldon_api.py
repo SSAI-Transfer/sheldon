@@ -5,7 +5,7 @@ Connects to Snowflake (Redzone) and SQL Server (Sage X3)
 Includes OpenAI integration for AI chat
 """
 
-from flask import Flask, jsonify, request, Response
+from flask import Flask, jsonify, request, Response, send_from_directory
 from flask_cors import CORS
 import subprocess
 import json
@@ -3475,6 +3475,11 @@ def generate_sample_calendar_events(start_date, end_date, executive_filter):
 # ============================================
 # MAIN
 # ============================================
+
+@app.route('/')
+def serve_frontend():
+    """Serve the SHELDON frontend."""
+    return send_from_directory(_script_dir, 'SHELDON.html')
 
 if __name__ == '__main__':
     print("=" * 60)

@@ -564,6 +564,35 @@
             overflow: hidden;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
+        .briefing-text {
+            max-height: 500px;
+            overflow-y: auto;
+            line-height: 1.7;
+            font-size: 13.5px;
+            color: #1a2a3a;
+        }
+        .briefing-text h1 {
+            font-size: 15px; font-weight: 700; margin: 14px 0 8px 0;
+            color: var(--accent-blue); border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;
+        }
+        .briefing-text h1:first-child { margin-top: 0; }
+        .briefing-text h2 {
+            font-size: 14px; font-weight: 600; margin: 12px 0 6px 0; color: var(--accent-blue);
+        }
+        .briefing-text h3 {
+            font-size: 13px; font-weight: 600; margin: 10px 0 4px 0; color: #0a8f4f;
+        }
+        .briefing-text p { margin: 5px 0; }
+        .briefing-text ul, .briefing-text ol { margin: 5px 0; padding-left: 20px; }
+        .briefing-text li { margin: 3px 0; }
+        .briefing-text strong { color: #1a2a3a; font-weight: 700; }
+        .briefing-text table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 12px; }
+        .briefing-text th {
+            text-align: left; padding: 5px 8px; border-bottom: 2px solid var(--accent-blue);
+            color: var(--accent-blue); font-weight: 600; font-size: 11px; text-transform: uppercase;
+        }
+        .briefing-text td { padding: 4px 8px; border-bottom: 1px solid #e2e8f0; }
+        .briefing-text hr { border: none; border-top: 1px solid #e2e8f0; margin: 10px 0; }
 
         .briefing-panel::before {
             content: '';
@@ -1028,7 +1057,7 @@
             margin: 6px 0; padding-left: 20px;
         }
         .message.sheldon .message-bubble li { margin: 3px 0; }
-        .message.sheldon .message-bubble strong { color: #fff; font-weight: 600; }
+        .message.sheldon .message-bubble strong { color: #1a2a3a; font-weight: 700; }
         .message.sheldon .message-bubble hr {
             border: none; border-top: 1px solid var(--glass-border); margin: 10px 0;
         }
@@ -4040,9 +4069,9 @@
             healthScore: `${API_BASE}/health-score`,
             deptKPIs: `${API_BASE}/kpi/departments`,
 
-            // Reports (uses briefing for now)
-            morningReport: `${API_BASE}/briefing`,
-            boardReport: `${API_BASE}/briefing`,
+            // Reports (Chief of Staff AI brief)
+            morningReport: `${API_BASE}/chief-of-staff/brief`,
+            boardReport: `${API_BASE}/chief-of-staff/brief`,
 
             // Analysis (placeholder - uses briefing)
             whatIf: `${API_BASE}/briefing`,
@@ -4090,23 +4119,52 @@
         });
 
         async function prefetchBriefingData() {
+            // Show loading state in briefing panel
+            const panel = document.getElementById('briefingText');
+            if (panel) panel.innerHTML = '<em style="color: var(--text-muted);">SHELDON is analyzing all systems — pulling S&OP, financials, operations, quality...</em>';
+
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 120000);
-                const response = await fetch(WEBHOOKS.briefing, { signal: controller.signal });
+                const timeoutId = setTimeout(() => controller.abort(), 180000);
+                // Use Claude Chief of Staff brief for the deep analysis
+                const response = await fetch(`${API_BASE}/chief-of-staff/brief`, { signal: controller.signal });
                 clearTimeout(timeoutId);
                 if (response.ok) {
-                    const text = await response.text();
-                    const cleanText = text.replace(/[\r\n]+/g, ' ');
-                    prefetchedBriefing = JSON.parse(cleanText);
+                    const data = await response.json();
+                    // Store the AI briefing for the welcome flow
+                    prefetchedBriefing = {
+                        briefing: data.briefing,
+                        tools_used: data.tools_used || [],
+                        kpis: {},  // KPI cards filled separately
+                        concerns: []
+                    };
+                    // Render the AI briefing into the panel with markdown
+                    if (panel) panel.innerHTML = renderMarkdown(data.briefing);
                     document.getElementById('briefingCheck').innerHTML = '&#10003;';
                     document.getElementById('briefingCheck').style.opacity = '1';
                     document.getElementById('briefingStatusText').textContent = 'Executive Briefing Ready';
                 }
             } catch (error) {
-                console.log('Briefing prefetch failed, will retry on dashboard entry');
+                console.log('Chief of Staff briefing prefetch failed, will retry on dashboard entry');
+                if (panel) panel.innerHTML = '<em style="color: var(--text-muted);">Briefing will load when you enter the dashboard.</em>';
                 document.getElementById('briefingStatusText').textContent = 'Briefing will load on entry';
             }
+            // Also fetch the simple KPI data for the cards (parallel, non-blocking)
+            try {
+                const kpiResp = await fetch(WEBHOOKS.briefing);
+                if (kpiResp.ok) {
+                    const kpiData = await kpiResp.json();
+                    updateKPICards(kpiData);
+                }
+            } catch (e) { /* KPI cards are nice-to-have */ }
+        }
+
+        function updateKPICards(data) {
+            const kpis = data.kpis || data;
+            const healthScore = document.getElementById('healthScore');
+            if (healthScore) healthScore.textContent = Math.round(kpis.oee || 0);
+            const redFlagCount = document.getElementById('redFlagCount');
+            if (redFlagCount) redFlagCount.textContent = (data.concerns || []).length || 0;
         }
 
         function initializeWelcome() {
@@ -4359,50 +4417,29 @@
             const panel = document.getElementById('briefingText');
             if (!panel) return;
 
-            const now = new Date();
-            const hours = now.getHours();
-            let greeting = hours < 12 ? 'Good morning' : hours < 17 ? 'Good afternoon' : 'Good evening';
-
-            // Handle both new local API format and old Make.com format
-            const kpis = data.kpis || data;
-            const oee = kpis.oee || data.PLANT_OEE || 0;
-            const quality = kpis.quality || data.PLANT_QUALITY || 0;
-            const lines = kpis.lines || data.LINES_REPORTING || 0;
-            const revenue = kpis.revenue_mtd || data.MTD_REVENUE || 0;
-            const concerns = data.concerns || [];
-
-            const oeeClass = oee >= 75 ? 'positive' : 'negative';
-            const qualityClass = quality >= 95 ? 'positive' : 'negative';
-
-            // Build concerns HTML
-            let concernsHtml = '';
-            if (concerns.length > 0) {
-                concernsHtml = concerns.map(c => `&bull; <span class="negative">${c}</span><br>`).join('');
-            } else if (data.PROBLEM_LINES) {
-                concernsHtml = `
-                    &bull; <span class="negative">${data.PROBLEM_LINES} lines</span> running below 70% OEE target<br>
-                    &bull; Worst performer: <strong>${data.WORST_LINE || 'N/A'}</strong> at <span class="negative">${data.WORST_OEE || 0}%</span> OEE<br>
-                `;
+            // If we have an AI briefing string, render it as markdown
+            if (data.briefing && typeof data.briefing === 'string' && data.briefing.length > 100) {
+                panel.innerHTML = renderMarkdown(data.briefing);
             } else {
-                concernsHtml = '&bull; All systems operating normally<br>';
+                // Fallback: simple KPI summary
+                const kpis = data.kpis || data;
+                const oee = kpis.oee || 0;
+                const lines = kpis.lines || 0;
+                const revenue = kpis.revenue_mtd || 0;
+                const concerns = data.concerns || [];
+                const oeeClass = oee >= 75 ? 'positive' : 'negative';
+                let concernsHtml = concerns.length > 0
+                    ? concerns.map(c => `&bull; <span class="negative">${c}</span><br>`).join('')
+                    : '&bull; All systems operating normally<br>';
+                panel.innerHTML = `
+                    <strong>Quick Summary:</strong> Plant OEE at <span class="${oeeClass}">${oee}%</span>,
+                    ${lines} lines reporting, MTD Revenue: $${(revenue / 1000000).toFixed(1)}M<br><br>
+                    ${concernsHtml}
+                    <br><em style="color: var(--text-muted);">Full Chief of Staff briefing loading...</em>
+                `;
             }
 
-            panel.innerHTML = `
-                ${greeting}, Dennis. Here's your executive summary for <span class="highlight">today</span>:<br><br>
-                <strong>Performance Highlights:</strong><br>
-                Plant OEE is running at <span class="${oeeClass}">${oee}%</span>.
-                ${quality > 0 ? `Quality holding at <span class="${qualityClass}">${quality}%</span>.` : ''}<br><br>
-                <strong>Items Requiring Attention:</strong><br>
-                ${concernsHtml}<br>
-                <strong>Overview:</strong><br>
-                ${lines} lines reporting &bull; MTD Revenue: $${(revenue / 1000000).toFixed(1)}M
-            `;
-
-            const healthScore = document.getElementById('healthScore');
-            if (healthScore) healthScore.textContent = Math.round(oee);
-
-            const redFlagCount = document.getElementById('redFlagCount');
-            if (redFlagCount) redFlagCount.textContent = concerns.length || data.PROBLEM_LINES || 0;
+            updateKPICards(data);
         }
 
         // ============================================
@@ -6589,36 +6626,32 @@
             showLoading('Generating report...');
             speak('One moment while I compile your report. I\'m pulling fresh data, so this may take a moment.');
 
+            const panel = document.getElementById('briefingText');
+            if (panel) panel.innerHTML = '<em style="color: var(--text-muted);">SHELDON is analyzing all systems...</em>';
+
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 120000);
+                const timeoutId = setTimeout(() => controller.abort(), 180000);
 
-                const hour = new Date().getHours();
-                const timeOfDay = hour < 12 ? 'morning' : 'afternoon';
-
-                const response = await fetch(WEBHOOKS.morningReport + '?timeOfDay=' + timeOfDay, {
+                const response = await fetch(`${API_BASE}/chief-of-staff/brief`, {
                     signal: controller.signal
                 });
                 clearTimeout(timeoutId);
 
-                if (!response.ok) throw new Error('Morning report fetch failed');
+                if (!response.ok) throw new Error('Chief of Staff brief failed');
 
-                const text = await response.text();
-                const cleanText = text.replace(/[\r\n]+/g, ' ');
-                const data = JSON.parse(cleanText);
+                const data = await response.json();
 
                 hideLoading();
 
-                const report = data.report || 'Unable to generate morning report.';
+                const report = data.briefing || 'Unable to generate briefing.';
 
-                // Update briefing panel with the report
-                const panel = document.getElementById('briefingText');
+                // Update briefing panel with rendered markdown
                 if (panel) {
-                    panel.innerHTML = report.replace(/\n/g, '<br>');
+                    panel.innerHTML = renderMarkdown(report);
                 }
 
-                // Speak and add to chat
-                speak(report);
+                // Add to chat as well
                 addSheldonMessage(report);
 
                 // Add to conversation history

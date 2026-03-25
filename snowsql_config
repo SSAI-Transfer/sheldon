@@ -1,0 +1,13 @@
+[connections.ameriqual]
+accountname = redzone-prod_direct_access_reader
+username = ZGRZDCXCHH_USER
+password = pughyf-3kiznE-fojzab
+dbname = ZGRZDCXCHH_DB
+schemaname = ameriqual-org
+
+[options]
+auto_completion = True
+friendly = False
+output_format = json
+timing = False
+log_level = CRITICAL
