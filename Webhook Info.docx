@@ -1,0 +1,252 @@
+# SHELDON Executive Intelligence System - Webhook Documentation
+
+## Overview
+This document contains all webhook endpoints configured for the SHELDON Executive Intelligence Dashboard used by AmeriQual Foods. Webhooks are HTTP endpoints that enable communication between the dashboard and backend services.
+
+---
+
+## WEBHOOK INVENTORY
+
+### 1. CORE COMMUNICATION WEBHOOKS
+
+#### Chat Webhook
+- **URL:** https://hook.us2.make.com/3eftqahiejqpw3yr2va4993aqkdoipgs
+- **Status:** ACTIVE
+- **Purpose:** Handles all conversational AI interactions with the SHELDON system
+- **Functionality:** Processes user queries, commands, and requests. Returns AI-generated responses based on the user's input, current KPIs, and recent alerts.
+- **Data Sent:** User command, chat mode, user name, timestamp, current KPIs, recent alerts
+
+#### Text-to-Speech (TTS) Webhook
+- **URL:** https://hook.us2.make.com/lypllp614zvrjplgpm16lhzbk7heykgm
+- **Status:** ACTIVE
+- **Purpose:** Converts text responses to audio for voice playback
+- **Functionality:** Takes text input and returns an audio blob that can be played through the browser
+- **Data Sent:** Text content to be converted to speech
+
+---
+
+### 2. KPI & METRICS WEBHOOKS (To Be Configured)
+
+#### KPI Live Update
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Fetches real-time KPI data for dashboard display
+- **Functionality:** Retrieves current values for production rate, order fulfillment, quality score, revenue, inventory turns, and labor efficiency
+- **Polling:** Adaptive intervals (5-60 seconds based on user activity)
+
+#### KPI Historical
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Retrieves historical KPI data for trend analysis and comparisons
+
+#### Production Metrics
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Detailed production line performance data
+
+#### Quality Metrics
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Quality control measurements and defect tracking
+
+#### Financial Pulse
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Real-time financial data including revenue, costs, and margins
+
+#### Supply Chain Status
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Supply chain monitoring including inventory levels and supplier status
+
+#### Order Fulfillment
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Order tracking and delivery performance metrics
+
+---
+
+### 3. REPORT GENERATION WEBHOOKS (To Be Configured)
+
+#### Morning Report
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Generates comprehensive daily morning briefing
+- **Includes:** Financials, production status, quality metrics, competitor updates
+- **Options:** Configurable to include/exclude specific sections
+
+#### Evening Summary
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** End-of-day summary report generation
+
+#### Board Report
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Creates formal board presentation packages
+- **Content:** Q3 financials, strategic initiatives, competitive analysis
+
+#### Weekly Report
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Weekly performance summary generation
+
+#### Monthly Report
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Monthly comprehensive business review
+
+#### Custom Report
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** User-defined custom report generation
+
+#### Export Report
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Export reports to various formats (Excel, PDF)
+
+---
+
+### 4. DECISION SUPPORT WEBHOOKS (To Be Configured)
+
+#### What-If Scenario
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Runs scenario simulations based on user-defined parameters
+- **Parameters:** Production changes, price adjustments, scenario type
+- **Output:** Revenue impact, profit projections, risk assessment
+
+#### Decision Logger
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Records executive decisions for tracking and analysis
+
+#### Decision History
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Retrieves historical decision data and outcomes
+
+#### ROI Calculator
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Calculates return on investment for decisions and initiatives
+
+#### Risk Assessment
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Evaluates risk levels for proposed actions
+
+#### Recommendation Engine
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** AI-powered recommendations based on current data and trends
+
+---
+
+### 5. ALERTS & MONITORING WEBHOOKS (To Be Configured)
+
+#### Emergency Analysis
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Comprehensive system-wide emergency analysis
+- **Function:** Analyzes all systems and can send alerts to department heads
+
+#### Alert Manager
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Central alert management and routing
+
+#### Threshold Monitor
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Monitors KPIs against defined thresholds
+
+#### Anomaly Detection
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** AI-based detection of unusual patterns or anomalies
+
+#### Predictive Alerts
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Proactive alerts based on predictive analytics
+
+#### Message Queue
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Manages pending messages and alert queue
+- **Polling:** Checked every 30 seconds for new alerts
+
+---
+
+### 6. BUSINESS INTELLIGENCE WEBHOOKS (To Be Configured)
+
+#### Competitor Intel
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Competitor monitoring and analysis
+- **Tracks:** MealCo Industries, FoodPack Solutions, Global Provisions, ReadyMeals Corp
+
+#### Market Analysis
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Market trends and industry analysis
+
+#### Customer Insights
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Customer behavior and satisfaction data
+
+#### Supplier Analysis
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Supplier performance and reliability metrics
+
+#### Industry News
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Aggregates relevant industry news and updates
+
+---
+
+### 7. MEETING & COMMUNICATION WEBHOOKS (To Be Configured)
+
+#### Meeting Prep
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Prepares briefing materials for upcoming meetings
+
+#### Meeting Notes
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Records and organizes meeting notes
+
+#### Action Items
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Tracks and manages action items from meetings
+
+#### Email Draft
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Generates email drafts for executive communications
+
+#### Stakeholder Update
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Creates stakeholder update communications
+
+---
+
+### 8. QUICK ACTIONS WEBHOOKS (To Be Configured)
+
+#### Show Problems
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Identifies and displays current issues across all systems
+
+#### Compare Periods
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Compares performance between different time periods
+
+#### Drill Down
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Provides detailed data breakdowns for specific metrics
+
+#### Export Data
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Exports dashboard data to external formats
+
+#### Share Insight
+- **URL:** [webhook-url] - Not yet configured
+- **Purpose:** Shares specific insights with team members or stakeholders
+
+---
+
+## TECHNICAL NOTES
+
+### Webhook Platform
+All webhooks are hosted on Make.com (formerly Integromat) using the hook.us2.make.com domain.
+
+### Authentication
+Webhook endpoints should be secured with appropriate authentication tokens (not shown in configuration).
+
+### Data Format
+All webhooks use JSON format for request/response data with Content-Type: application/json headers.
+
+### Error Handling
+The dashboard includes fallback behavior when webhooks are not configured or unavailable, using simulated data for demonstration purposes.
+
+---
+
+## SUMMARY
+
+- **Total Webhooks Defined:** 35
+- **Currently Active:** 2 (Chat and TTS)
+- **Pending Configuration:** 33
+
+The two active webhooks handle the core conversational AI functionality, while the remaining webhooks are placeholders for expanded functionality as the system is developed.
