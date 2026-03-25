@@ -84,6 +84,7 @@ class SOPReader:
     RETORT_DELTA_ROW = 69
 
     REPORT_SEARCH_PATHS = [
+        Path(__file__).parent / 'reports',  # Local reports folder (works on any machine)
         Path(__file__).parent / '..' / 'S&OP Creation Automation' / 'S&OP Project' / 'sop_automation' / 'reports',
         Path(r"D:/Business/AMERIQUAL PROJECT TRACKER/Current Projects/S&OP Creation Automation/S&OP Project/sop_automation/reports"),
         Path(r"E:/Business/AMERIQUAL PROJECT TRACKER/Current Projects/S&OP Creation Automation/S&OP Project/sop_automation/reports"),

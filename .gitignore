@@ -10,6 +10,7 @@ __pycache__/
 # Temp files
 tmpclaude-*/
 fail.txt
+sheldon.log
 
 # SnowSQL config (may contain credentials)
 snowsql_config/

@@ -1823,11 +1823,17 @@ def generate_sop():
 @app.route('/api/sop/latest', methods=['GET'])
 def get_latest_sop():
     """Get the path to the most recent S&OP report file."""
-    sop_reports = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        '..', 'S&OP Creation Automation', 'S&OP Project', 'sop_automation', 'reports'
-    )
-    if not os.path.exists(sop_reports):
+    # Check local reports folder first, then external paths
+    search_paths = [
+        os.path.join(_script_dir, 'reports'),
+        os.path.join(_script_dir, '..', 'S&OP Creation Automation', 'S&OP Project', 'sop_automation', 'reports'),
+    ]
+    sop_reports = None
+    for p in search_paths:
+        if os.path.exists(p):
+            sop_reports = p
+            break
+    if not sop_reports:
         return jsonify({'status': 'no_reports', 'message': 'No S&OP reports found.'})
 
     files = sorted(
@@ -1854,12 +1860,15 @@ def open_sop():
         file_path = data.get('file_path')
 
         if not file_path:
-            # Fall back to latest
-            sop_reports = os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                '..', 'S&OP Creation Automation', 'S&OP Project', 'sop_automation', 'reports'
-            )
-            if os.path.exists(sop_reports):
+            # Fall back to latest — check local reports first
+            for _sp in [os.path.join(_script_dir, 'reports'),
+                        os.path.join(_script_dir, '..', 'S&OP Creation Automation', 'S&OP Project', 'sop_automation', 'reports')]:
+                if os.path.exists(_sp):
+                    sop_reports = _sp
+                    break
+            else:
+                sop_reports = None
+            if sop_reports:
                 files = sorted(
                     [f for f in os.listdir(sop_reports) if f.endswith(('.xlsx', '.xlsm')) and not f.startswith('~$')],
                     key=lambda f: os.path.getmtime(os.path.join(sop_reports, f)),
