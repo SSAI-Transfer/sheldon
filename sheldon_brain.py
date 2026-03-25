@@ -1312,22 +1312,92 @@ class SheldonBrain:
     # Unified Morning Brief
     # =========================================================================
 
+    def _gather_briefing_data(self) -> str:
+        """Pre-gather all data for the morning brief in Python (fast, no tool loop)."""
+        sections = []
+
+        # S&OP Status
+        try:
+            sop = self._tool_sop_status()
+            sections.append(f"## S&OP PLAN STATUS\n{json.dumps(sop, default=str)[:5000]}")
+        except Exception as e:
+            sections.append(f"## S&OP PLAN STATUS\nUnavailable: {e}")
+
+        # Plant OEE
+        try:
+            oee = self._tool_plant_oee()
+            sections.append(f"## PLANT OEE\n{json.dumps(oee, default=str)[:2000]}")
+        except Exception as e:
+            sections.append(f"## PLANT OEE\nUnavailable: {e}")
+
+        # Red flag lines
+        try:
+            flags = self._tool_red_flags()
+            sections.append(f"## RED FLAG LINES (below 70% OEE)\n{json.dumps(flags, default=str)[:2000]}")
+        except Exception as e:
+            sections.append(f"## RED FLAG LINES\nUnavailable: {e}")
+
+        # Top downtime
+        try:
+            dt = self._tool_top_downtime()
+            sections.append(f"## TOP DOWNTIME REASONS\n{json.dumps(dt, default=str)[:2000]}")
+        except Exception as e:
+            sections.append(f"## TOP DOWNTIME\nUnavailable: {e}")
+
+        # Financial snapshot
+        try:
+            fin = self._tool_financial_snapshot()
+            sections.append(f"## FINANCIAL SNAPSHOT\n{json.dumps(fin, default=str)[:2000]}")
+        except Exception as e:
+            sections.append(f"## FINANCIAL SNAPSHOT\nUnavailable: {e}")
+
+        # Inventory
+        try:
+            inv = self._tool_inventory()
+            sections.append(f"## INVENTORY\n{json.dumps(inv, default=str)[:2000]}")
+        except Exception as e:
+            sections.append(f"## INVENTORY\nUnavailable: {e}")
+
+        # Quality pipeline (Donna)
+        try:
+            qa = self._tool_quality_pipeline()
+            sections.append(f"## QUALITY PIPELINE (Donna)\n{json.dumps(qa, default=str)[:2000]}")
+        except Exception as e:
+            sections.append(f"## QUALITY PIPELINE\nUnavailable: {e}")
+
+        # Departmental KPIs
+        try:
+            kpis = self._tool_departmental_kpis({"department": "all"})
+            sections.append(f"## DEPARTMENTAL KPIs\n{json.dumps(kpis, default=str)[:4000]}")
+        except Exception as e:
+            sections.append(f"## DEPARTMENTAL KPIs\nUnavailable: {e}")
+
+        # Health score
+        try:
+            health = self._tool_health_score()
+            sections.append(f"## BUSINESS HEALTH SCORE\n{json.dumps(health, default=str)[:1000]}")
+        except Exception as e:
+            sections.append(f"## BUSINESS HEALTH\nUnavailable: {e}")
+
+        return "\n\n".join(sections)
+
     def generate_morning_brief(self) -> dict:
         """Generate a comprehensive Chief of Staff morning briefing.
         S&OP-anchored, action-driven, money-focused.
+        Pre-gathers all data in Python, then sends ONE request to Claude for synthesis.
         """
-        brief_prompt = """Generate Dennis Straub's morning briefing. You are his Chief of Staff — tell him exactly what to do today to make money and protect revenue.
+        # Step 1: Gather all data upfront (fast — direct DB calls, no agent loop)
+        print("Morning Brief: Gathering data from all systems...")
+        data_dump = self._gather_briefing_data()
+        print(f"Morning Brief: Data gathered ({len(data_dump)} chars). Sending to Claude for synthesis...")
 
-## STEP 1: Pull ALL data (call these tools in parallel where possible)
-- **get_sop_status** — THIS FIRST. The S&OP plan is the foundation of everything else.
-- **get_plant_oee** + **get_red_flag_lines** + **get_top_downtime** — Current operations
-- **get_financial_snapshot** + **get_inventory_status** — Money position
-- **get_quality_pipeline** — Shipment blockers
-- **get_departmental_kpis('all')** — All department performance vs targets
-- **get_executive_calendar** — Dennis's day
-- **get_business_health** — Composite score
+        brief_prompt = f"""Here is ALL the live data from AmeriQual's systems right now. DO NOT call any tools — everything you need is below. Synthesize this into Dennis Straub's morning briefing.
 
-## STEP 2: Synthesize into this EXACT format
+--- BEGIN LIVE DATA ---
+{data_dump}
+--- END LIVE DATA ---
+
+Synthesize into this EXACT format:
 
 ### MONEY MOVES — Top 3 Things That Make or Lose You Money Today
 For each item:
@@ -1373,9 +1443,35 @@ One sentence. The single most important thing Dennis should focus on today and w
 - Estimates are OK but LABEL them: "~$50K estimated based on line rate"
 - If S&OP data is unavailable, still frame operations against capacity and revenue impact
 - Keep the entire briefing under 800 words — dense, no fluff
-- Do NOT just list metrics. Connect → Conclude → Command."""
+- Do NOT just list metrics. Connect → Conclude → Command.
+- DO NOT call any tools. All data is provided above."""
 
-        return self.process_message(brief_prompt)
+        # Step 2: Single Claude call — no tool loop needed
+        system = build_system_prompt()
+        messages = [{"role": "user", "content": brief_prompt}]
+
+        response = self._call_claude(system, messages)
+
+        if response is None:
+            return {
+                "response": "I'm experiencing a temporary connection issue with my AI engine. Please try again in a moment.",
+                "tools_used": [],
+                "data_sources": ["prefetched"],
+                "timestamp": datetime.now().isoformat()
+            }
+
+        content = response.get("content", [])
+        text_parts = [b.get("text", "") for b in content if b.get("type") == "text"]
+        final_response = "\n".join(text_parts)
+
+        print("Morning Brief: Complete.")
+
+        return {
+            "response": final_response,
+            "tools_used": ["prefetched_all_data"],
+            "data_sources": ["snowflake", "sage_x3", "donna_qa", "internal_dbs", "sop_report"],
+            "timestamp": datetime.now().isoformat()
+        }
 
     def clear_history(self):
         """Clear conversation history."""
