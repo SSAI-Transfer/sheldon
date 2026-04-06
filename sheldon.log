@@ -1,0 +1,62 @@
+SHELDON Brain: ONLINE (Claude-powered Chief of Staff)
+============================================================
+  S H E L D O N
+  Chief of Staff AI — Executive Intelligence System
+============================================================
+  Server: http://localhost:5000
+
+  AI ENGINE STATUS:
+    Claude Brain (Chief of Staff): ONLINE
+    OpenAI (Fallback):             ONLINE
+
+  CHIEF OF STAFF ENDPOINTS:
+    POST /api/chat                    - AI chat (Claude w/ tool-use)
+    GET  /api/chief-of-staff/brief    - Morning briefing (all systems)
+    POST /api/chief-of-staff/clear-history - Clear conversation memory
+
+  OPERATIONS (Snowflake/Redzone):
+    GET /api/kpi/live                 - Plant OEE & production
+    GET /api/redflags                 - Lines below target
+    GET /api/operations/downtime      - Downtime breakdown
+    GET /api/operations/labor         - Labor productivity
+    GET /api/operations/trend         - Hourly OEE trend
+    GET /api/operations/active-lines  - Currently producing
+
+  QUALITY (Snowflake + Donna QA):
+    GET /api/quality/summary          - Quality metrics
+    GET /api/quality/defects          - Defect types (today)
+    GET /api/quality/pipeline         - Batch release pipeline (Donna)
+
+  FINANCIAL (Sage X3):
+    GET /api/financial/revenue        - Revenue (daily/MTD/YTD)
+    GET /api/financial/kpis           - Financial KPIs
+    GET /api/financial/ebitda         - EBITDA estimate
+    GET /api/inventory/kpis           - Inventory by facility
+    GET /api/ar/aging                 - AR aging breakdown
+    GET /api/customers/top            - Top 10 customers
+
+  INTELLIGENCE:
+    GET /api/briefing                 - Executive briefing
+    GET /api/health-score             - Business health (0-100)
+    GET /api/health                   - API health check
+
+  CALENDAR (MS Graph):
+    GET /api/calendar/events          - Executive calendar
+    GET /api/calendar/executives      - Executive list & presence
+
+  PRODUCTION & S&OP:
+    GET  /api/production/schedules     - Production schedules
+    GET  /api/sop/status               - S&OP decision snapshot (demand vs capacity)
+    POST /api/sop/generate             - Trigger S&OP generation
+
+  INTEGRATIONS:
+    Jackie (localhost:5001)            - Deep quality analytics
+    Donna  (localhost:5002)            - Batch release pipeline
+============================================================
+ * Serving Flask app 'sheldon_api'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.224:5000
+Press CTRL+C to quit

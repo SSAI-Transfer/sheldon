@@ -1,28 +1,7 @@
-# Secrets
-.env
-*.env
-
-# Python
+.venv/
 __pycache__/
 *.pyc
-*.pyo
-
-# Temp files
-tmpclaude-*/
-fail.txt
-sheldon.log
-
-# SnowSQL config (may contain credentials)
-snowsql_config/
-
-# Backups and zips
+.env
+*.log
 *.zip
-SHELDON_backup.html
-SHELDON.html.dark-backup
-
-# OS
-Thumbs.db
-.DS_Store
-
-# Office temp files
-~$*
+tmpclaude-*

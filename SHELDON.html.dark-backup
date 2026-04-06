@@ -26,8 +26,8 @@
             --accent-yellow: #c67c00;
             --accent-purple: #7b42c6;
             --text-primary: #1a1a2e;
-            --text-secondary: #2d3748;
-            --text-muted: #4a5568;
+            --text-secondary: #4a5568;
+            --text-muted: #94a3b8;
             --border-glow: rgba(0, 119, 204, 0.2);
             --glass-bg: rgba(255, 255, 255, 0.95);
             --glass-border: rgba(0, 0, 0, 0.1);
@@ -284,9 +284,9 @@
             animation: pulse 2s infinite;
         }
 
-        .status-dot.online { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
-        .status-dot.warning { background: var(--accent-yellow); box-shadow: 0 0 6px var(--accent-yellow); }
-        .status-dot.critical { background: var(--accent-red); box-shadow: 0 0 6px var(--accent-red); }
+        .status-dot.online { background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }
+        .status-dot.warning { background: var(--accent-yellow); box-shadow: 0 0 10px var(--accent-yellow); }
+        .status-dot.critical { background: var(--accent-red); box-shadow: 0 0 10px var(--accent-red); }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
@@ -334,7 +334,7 @@
         }
 
         @keyframes voicePulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.25); }
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0.5); }
             50% { box-shadow: 0 0 0 15px rgba(255, 51, 102, 0); }
         }
 
@@ -479,8 +479,8 @@
 
         /* Alert Banner */
         .alert-banner {
-            background: linear-gradient(90deg, rgba(211, 47, 47, 0.06), rgba(211, 47, 47, 0.03));
-            border: 1px solid rgba(211, 47, 47, 0.15);
+            background: linear-gradient(90deg, rgba(255, 51, 102, 0.2), rgba(255, 51, 102, 0.1));
+            border: 1px solid rgba(255, 51, 102, 0.3);
             border-radius: 12px;
             padding: 15px 25px;
             margin-bottom: 20px;
@@ -564,15 +564,6 @@
             overflow: hidden;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
-        .briefing-text-fallback h1 {
-            font-size: 15px; font-weight: 700; margin: 14px 0 8px 0;
-            color: var(--accent-blue); border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;
-        }
-        .briefing-text-fallback h2 {
-            font-size: 14px; font-weight: 600; margin: 12px 0 6px 0; color: var(--accent-blue);
-        }
-        .briefing-text-fallback p { margin: 5px 0; }
-        .briefing-text-fallback strong { color: #1a2a3a; font-weight: 700; }
 
         .briefing-panel::before {
             content: '';
@@ -644,124 +635,69 @@
         }
 
         .briefing-content {
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-        }
-
-        /* Bottom Line — hero callout at top */
-        .briefing-bottomline {
-            background: linear-gradient(135deg, #1a1a2e 0%, #0d1b2a 100%);
-            color: #ffffff;
-            border-radius: 12px;
-            padding: 18px 24px;
-            margin-bottom: 16px;
-            font-size: 15px;
-            font-weight: 500;
-            line-height: 1.6;
-            display: none;
-            border-left: 4px solid var(--accent-blue);
-        }
-        .briefing-bottomline .bl-label {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--accent-blue);
-            margin-bottom: 6px;
-        }
-        .briefing-bottomline strong { color: #ffffff; }
-
-        /* Section cards grid */
-        .briefing-sections {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
         }
-        .briefing-section-card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 18px 20px;
-            border: 1px solid #e2e8f0;
-            border-top: 3px solid var(--section-color, #e2e8f0);
-            transition: box-shadow 0.2s ease;
-        }
-        .briefing-section-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-        }
-        .briefing-section-card.full-width {
-            grid-column: 1 / -1;
-        }
-        .briefing-section-card .section-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .briefing-section-card .section-icon {
-            font-size: 16px;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            background: var(--section-color-bg, #f1f5f9);
-        }
-        .briefing-section-card .section-title {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--section-color, var(--text-muted));
-        }
-        .briefing-section-card .section-body {
-            font-size: 13px;
-            line-height: 1.7;
-            color: var(--text-secondary);
-        }
-        .briefing-section-card .section-body strong { color: #1a1a2e; }
-        .briefing-section-card .section-body ul,
-        .briefing-section-card .section-body ol { padding-left: 18px; margin: 4px 0; }
-        .briefing-section-card .section-body li { margin: 3px 0; }
-        .briefing-section-card .section-body table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 12px; }
-        .briefing-section-card .section-body th {
-            text-align: left; padding: 5px 8px; border-bottom: 2px solid var(--section-color, #e2e8f0);
-            font-weight: 600; font-size: 11px; text-transform: uppercase; color: var(--section-color, var(--text-muted));
-        }
-        .briefing-section-card .section-body td { padding: 4px 8px; border-bottom: 1px solid #f1f5f9; }
-        .briefing-section-card .section-body p { margin: 4px 0; }
 
-        /* Section color themes */
-        .briefing-section-card[data-section="money"] { --section-color: #c67c00; --section-color-bg: #fef3e2; }
-        .briefing-section-card[data-section="plan"] { --section-color: #0077cc; --section-color-bg: #e8f4fd; }
-        .briefing-section-card[data-section="financial"] { --section-color: #0a8f4f; --section-color-bg: #e6f7ee; }
-        .briefing-section-card[data-section="watch"] { --section-color: #d32f2f; --section-color-bg: #fde8e8; }
-        .briefing-section-card[data-section="wins"] { --section-color: #0a8f4f; --section-color-bg: #e6f7ee; }
-
-        /* Briefing age badge */
-        .briefing-age {
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 400;
-            padding: 3px 10px;
-            background: #f1f5f9;
-            border-radius: 12px;
-            display: none;
-        }
-        .briefing-age.cached { color: var(--accent-yellow); background: #fef3e2; }
-
-        /* Fallback: raw markdown display (loading state) */
-        .briefing-text-fallback {
-            font-size: 13.5px;
-            line-height: 1.7;
-            color: var(--text-secondary);
-            padding: 20px;
+        .briefing-summary {
             background: #f8f9fa;
             border-radius: 12px;
+            padding: 20px;
+            min-height: 150px;
             border: 1px solid #e2e8f0;
-            grid-column: 1 / -1;
         }
+
+        .briefing-text {
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .briefing-text .highlight {
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .briefing-text .positive {
+            color: var(--accent-green);
+        }
+
+        .briefing-text .negative {
+            color: var(--accent-red);
+        }
+
+        .briefing-metrics {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .briefing-metric {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            color: var(--accent-blue);
+        }
+
+        .metric-value.positive { color: var(--accent-green); }
+        .metric-value.negative { color: var(--accent-red); }
 
         /* KPI Grid */
         .kpi-grid {
@@ -949,68 +885,6 @@
             transform: rotate(180deg);
         }
 
-        /* Fullscreen SHELDON Chat Modal */
-        .sheldon-fullscreen-backdrop {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: rgba(10, 15, 30, 0.85);
-            backdrop-filter: blur(8px);
-            z-index: 10000;
-            justify-content: center;
-            align-items: center;
-            padding: 30px;
-        }
-
-        .sheldon-fullscreen-backdrop.active {
-            display: flex;
-        }
-
-        .sheldon-fullscreen-container {
-            width: 100%;
-            max-width: 1000px;
-            height: 100%;
-            position: relative;
-        }
-
-        .sheldon-fullscreen-container .ai-interface {
-            height: 100% !important;
-        }
-
-        .sheldon-fullscreen-container .ai-messages {
-            font-size: 15px;
-        }
-
-        .sheldon-fullscreen-container .ai-input {
-            font-size: 15px;
-            min-height: 60px;
-        }
-
-        .sheldon-fullscreen-close {
-            position: absolute;
-            top: -12px; right: -12px;
-            width: 36px; height: 36px;
-            background: #ef4444;
-            border: none;
-            border-radius: 50%;
-            color: white;
-            font-size: 22px;
-            line-height: 1;
-            cursor: pointer;
-            z-index: 10001;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-            transition: background 0.2s ease, transform 0.2s ease;
-        }
-
-        .sheldon-fullscreen-close:hover {
-            background: #dc2626;
-            transform: scale(1.1);
-        }
-
         .ai-header {
             padding: 20px;
             border-bottom: 1px solid var(--glass-border);
@@ -1126,12 +1000,12 @@
 
         .message.user .message-bubble {
             background: linear-gradient(135deg, var(--accent-blue), rgba(0, 212, 255, 0.7));
-            color: #ffffff;
+            color: var(--primary-dark);
             border-bottom-right-radius: 4px;
         }
 
         .message.sheldon .message-bubble {
-            background: #f1f5f9;
+            background: rgba(30, 40, 55, 0.8);
             color: var(--text-primary);
             border: 1px solid var(--glass-border);
             border-bottom-left-radius: 4px;
@@ -1154,7 +1028,7 @@
             margin: 6px 0; padding-left: 20px;
         }
         .message.sheldon .message-bubble li { margin: 3px 0; }
-        .message.sheldon .message-bubble strong { color: #1a2a3a; font-weight: 700; }
+        .message.sheldon .message-bubble strong { color: #fff; font-weight: 600; }
         .message.sheldon .message-bubble hr {
             border: none; border-top: 1px solid var(--glass-border); margin: 10px 0;
         }
@@ -1290,8 +1164,8 @@
             width: 48px;
             height: 48px;
             border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            background: #f1f5f9;
+            border: 1px solid var(--glass-border);
+            background: rgba(0, 212, 255, 0.1);
             color: var(--accent-blue);
             font-size: 18px;
             cursor: pointer;
@@ -1303,25 +1177,25 @@
 
         .ai-btn:hover {
             background: var(--accent-blue);
-            color: #ffffff;
-            box-shadow: 0 2px 8px rgba(0, 119, 204, 0.2);
+            color: var(--primary-dark);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
         }
 
         .ai-btn.send {
             background: var(--accent-blue);
-            color: #ffffff;
+            color: var(--primary-dark);
             border-color: var(--accent-blue);
         }
 
         .ai-btn.send:hover {
-            background: #005fa3;
-            box-shadow: 0 2px 8px rgba(0, 119, 204, 0.3);
+            background: #00b8e6;
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.5);
         }
 
         /* Command Center Panel */
         .command-center {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
             border-radius: 16px;
             display: flex;
             flex-direction: column;
@@ -1359,7 +1233,7 @@
         }
 
         .command-tab.active {
-            background: rgba(0, 119, 204, 0.08);
+            background: rgba(0, 212, 255, 0.1);
             color: var(--accent-blue);
         }
 
@@ -1377,8 +1251,8 @@
         }
 
         .red-flag-item {
-            background: rgba(211, 47, 47, 0.04);
-            border: 1px solid rgba(211, 47, 47, 0.15);
+            background: rgba(255, 51, 102, 0.05);
+            border: 1px solid rgba(255, 51, 102, 0.2);
             border-left: 3px solid var(--accent-red);
             border-radius: 10px;
             padding: 15px;
@@ -1387,19 +1261,19 @@
         }
 
         .red-flag-item:hover {
-            background: rgba(211, 47, 47, 0.08);
+            background: rgba(255, 51, 102, 0.1);
             transform: translateX(5px);
         }
 
         .red-flag-item.warning {
-            background: rgba(198, 124, 0, 0.04);
-            border-color: rgba(198, 124, 0, 0.15);
+            background: rgba(255, 170, 0, 0.05);
+            border-color: rgba(255, 170, 0, 0.2);
             border-left-color: var(--accent-yellow);
         }
 
         .red-flag-item.info {
-            background: rgba(0, 119, 204, 0.04);
-            border-color: rgba(0, 119, 204, 0.15);
+            background: rgba(0, 212, 255, 0.05);
+            border-color: rgba(0, 212, 255, 0.2);
             border-left-color: var(--accent-blue);
         }
 
@@ -1451,7 +1325,7 @@
         }
 
         .quick-action {
-            background: #f8f9fa;
+            background: rgba(0, 0, 0, 0.2);
             border: 1px solid var(--glass-border);
             border-radius: 10px;
             padding: 15px;
@@ -1461,7 +1335,7 @@
         }
 
         .quick-action:hover {
-            background: rgba(0, 119, 204, 0.06);
+            background: rgba(0, 212, 255, 0.1);
             border-color: var(--accent-blue);
             transform: translateY(-3px);
         }
@@ -1485,7 +1359,7 @@
         }
 
         .category-card {
-            background: #ffffff;
+            background: var(--card-bg);
             border: 1px solid var(--glass-border);
             border-radius: 16px;
             padding: 20px;
@@ -1497,7 +1371,7 @@
 
         .category-card:hover {
             border-color: var(--accent-blue);
-            box-shadow: 0 10px 40px rgba(0, 119, 204, 0.06);
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.1);
         }
 
         .category-card.expanded {
@@ -1513,7 +1387,7 @@
 
         .category-card.expanded .category-metric {
             padding: 20px;
-            background: #f1f5f9;
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 12px;
             text-align: center;
         }
@@ -1544,7 +1418,7 @@
         .category-icon {
             width: 35px;
             height: 35px;
-            background: rgba(0, 119, 204, 0.06);
+            background: rgba(0, 212, 255, 0.1);
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -1560,7 +1434,7 @@
 
         .category-action {
             padding: 6px 12px;
-            background: rgba(0, 119, 204, 0.06);
+            background: rgba(0, 212, 255, 0.1);
             border: 1px solid var(--glass-border);
             border-radius: 6px;
             color: var(--text-secondary);
@@ -1571,7 +1445,7 @@
 
         .category-action:hover {
             background: var(--accent-blue);
-            color: #ffffff;
+            color: var(--primary-dark);
         }
 
         .category-content {
@@ -1585,7 +1459,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 12px;
-            background: #f8f9fa;
+            background: rgba(0, 0, 0, 0.2);
             border-radius: 8px;
         }
 
@@ -1605,7 +1479,7 @@
 
         /* Chart Placeholder */
         .chart-placeholder {
-            background: #f8f9fa;
+            background: rgba(0, 0, 0, 0.2);
             border-radius: 10px;
             height: 120px;
             display: flex;
@@ -1624,7 +1498,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.85);
             z-index: 9000;
             align-items: center;
             justify-content: center;
@@ -1636,14 +1510,14 @@
         }
 
         .drill-modal-content {
-            background: #ffffff;
+            background: var(--glass-bg);
             border: 1px solid var(--accent-blue);
             border-radius: 20px;
             width: 90%;
             max-width: 900px;
             max-height: 85vh;
             overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 0 60px rgba(0, 212, 255, 0.3);
             animation: modalSlideIn 0.3s ease;
         }
 
@@ -1658,7 +1532,7 @@
             align-items: center;
             padding: 25px 30px;
             border-bottom: 1px solid var(--glass-border);
-            background: linear-gradient(135deg, rgba(0, 119, 204, 0.06), transparent);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), transparent);
         }
 
         .drill-modal-title {
@@ -1681,7 +1555,7 @@
             width: 40px;
             height: 40px;
             border: none;
-            background: rgba(211, 47, 47, 0.08);
+            background: rgba(255, 51, 102, 0.2);
             color: var(--accent-red);
             font-size: 24px;
             border-radius: 10px;
@@ -1717,11 +1591,11 @@
             transition: all 0.3s ease;
             background: var(--accent-blue);
             border: none;
-            color: #ffffff;
+            color: var(--primary-dark);
         }
 
         .drill-modal-btn:hover {
-            box-shadow: 0 0 20px rgba(0, 119, 204, 0.25);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
         }
 
         .drill-modal-btn.secondary {
@@ -1744,7 +1618,7 @@
         }
 
         .drill-stat-card {
-            background: #f1f5f9;
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 20px;
@@ -1778,12 +1652,12 @@
         }
 
         .drill-stat-change.up {
-            background: rgba(10, 143, 79, 0.08);
+            background: rgba(0, 255, 136, 0.15);
             color: var(--accent-green);
         }
 
         .drill-stat-change.down {
-            background: rgba(211, 47, 47, 0.08);
+            background: rgba(255, 51, 102, 0.15);
             color: var(--accent-red);
         }
 
@@ -1817,7 +1691,7 @@
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 1px;
-            background: #f8f9fa;
+            background: rgba(0, 0, 0, 0.2);
         }
 
         .drill-table td {
@@ -1826,7 +1700,7 @@
         }
 
         .drill-table tr:hover {
-            background: rgba(0, 119, 204, 0.04);
+            background: rgba(0, 212, 255, 0.05);
         }
 
         .status-badge {
@@ -1836,9 +1710,9 @@
             font-weight: 600;
         }
 
-        .status-badge.good { background: rgba(10, 143, 79, 0.1); color: var(--accent-green); }
-        .status-badge.warning { background: rgba(198, 124, 0, 0.1); color: var(--accent-yellow); }
-        .status-badge.critical { background: rgba(211, 47, 47, 0.1); color: var(--accent-red); }
+        .status-badge.good { background: rgba(0, 255, 136, 0.2); color: var(--accent-green); }
+        .status-badge.warning { background: rgba(255, 170, 0, 0.2); color: var(--accent-yellow); }
+        .status-badge.critical { background: rgba(255, 51, 102, 0.2); color: var(--accent-red); }
 
         /* TTS Controls */
         .tts-controls {
@@ -1856,7 +1730,7 @@
             height: 60px;
             border-radius: 50%;
             border: 2px solid var(--accent-blue);
-            background: #ffffff;
+            background: var(--glass-bg);
             color: var(--accent-blue);
             font-size: 24px;
             cursor: pointer;
@@ -1865,21 +1739,21 @@
             align-items: center;
             justify-content: center;
             backdrop-filter: blur(10px);
-            box-shadow: 0 5px 25px #f1f5f9;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
         }
 
         .tts-btn:hover {
             background: var(--accent-blue);
-            color: #ffffff;
+            color: var(--primary-dark);
             transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(0, 119, 204, 0.3);
+            box-shadow: 0 5px 35px rgba(0, 212, 255, 0.4);
         }
 
         .tts-btn.speaking {
             animation: speakingPulse 1s infinite;
             background: var(--accent-green);
             border-color: var(--accent-green);
-            color: #ffffff;
+            color: var(--primary-dark);
         }
 
         @keyframes speakingPulse {
@@ -1894,7 +1768,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.92);
+            background: rgba(3, 5, 8, 0.95);
             z-index: 9999;
             display: none;
             align-items: center;
@@ -1937,17 +1811,17 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: rgba(0, 119, 204, 0.04);
+            background: rgba(0, 212, 255, 0.05);
             border-radius: 3px;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #c4cdd5;
+            background: rgba(0, 212, 255, 0.2);
             border-radius: 3px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+            background: rgba(0, 212, 255, 0.4);
         }
 
         /* Responsive */
@@ -2001,7 +1875,7 @@
 
         .kpi-dept-btn {
             padding: 8px 16px;
-            background: rgba(0, 119, 204, 0.04);
+            background: rgba(0, 212, 255, 0.05);
             border: 1px solid var(--glass-border);
             border-radius: 8px;
             color: var(--text-secondary);
@@ -2013,15 +1887,15 @@
         }
 
         .kpi-dept-btn:hover {
-            background: rgba(0, 119, 204, 0.06);
+            background: rgba(0, 212, 255, 0.1);
             color: var(--text-primary);
         }
 
         .kpi-dept-btn.active {
-            background: var(--accent-blue);
-            color: #ffffff;
+            background: linear-gradient(135deg, var(--accent-blue), rgba(0, 212, 255, 0.5));
+            color: var(--primary-dark);
             font-weight: 600;
-            box-shadow: 0 2px 6px rgba(0, 119, 204, 0.2);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
             border-color: var(--accent-blue);
         }
 
@@ -2032,7 +1906,7 @@
         }
 
         .kpi-dept-card {
-            background: #ffffff;
+            background: var(--card-bg);
             border: 1px solid var(--glass-border);
             border-radius: 16px;
             padding: 20px;
@@ -2054,7 +1928,7 @@
 
         .kpi-dept-card:hover {
             border-color: var(--accent-blue);
-            box-shadow: 0 10px 40px rgba(0, 119, 204, 0.06);
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.1);
         }
 
         .kpi-dept-card.hidden {
@@ -2077,7 +1951,7 @@
         .kpi-dept-icon {
             width: 35px;
             height: 35px;
-            background: rgba(0, 119, 204, 0.06);
+            background: rgba(0, 212, 255, 0.1);
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -2101,15 +1975,15 @@
         }
 
         .kpi-dept-status.live {
-            background: rgba(10, 143, 79, 0.08);
+            background: rgba(0, 255, 136, 0.15);
             color: var(--accent-green);
-            border: 1px solid rgba(10, 143, 79, 0.2);
+            border: 1px solid rgba(0, 255, 136, 0.3);
         }
 
         .kpi-dept-status.pending {
-            background: rgba(198, 124, 0, 0.08);
+            background: rgba(255, 170, 0, 0.15);
             color: var(--accent-yellow);
-            border: 1px solid rgba(198, 124, 0, 0.2);
+            border: 1px solid rgba(255, 170, 0, 0.3);
         }
 
         .kpi-dept-metrics {
@@ -2123,13 +1997,13 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 12px;
-            background: #f8f9fa;
+            background: rgba(0, 0, 0, 0.2);
             border-radius: 8px;
             transition: all 0.2s ease;
         }
 
         .kpi-dept-metric:hover {
-            background: #ebeef2;
+            background: rgba(0, 0, 0, 0.35);
         }
 
         .kpi-dept-metric-info {
@@ -2163,8 +2037,8 @@
         .kpi-dept-summary {
             margin-top: 12px;
             padding: 10px 12px;
-            background: rgba(0, 119, 204, 0.04);
-            border: 1px solid rgba(0, 119, 204, 0.06);
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.1);
             border-radius: 8px;
             display: flex;
             justify-content: space-between;
@@ -2194,8 +2068,8 @@
            ============================================ */
         .executives-panel {
             display: none;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
             border-radius: 16px;
             padding: 25px;
             margin-bottom: 20px;
@@ -2292,7 +2166,7 @@
         .calendar-view-selector {
             display: flex;
             gap: 5px;
-            background: #ebeef2;
+            background: rgba(0, 0, 0, 0.3);
             padding: 5px;
             border-radius: 8px;
         }
@@ -2309,13 +2183,13 @@
         }
 
         .calendar-view-btn:hover {
-            background: rgba(0, 119, 204, 0.06);
+            background: rgba(0, 212, 255, 0.1);
             color: var(--text-primary);
         }
 
         .calendar-view-btn.active {
             background: var(--accent-blue);
-            color: #ffffff;
+            color: var(--primary-dark);
             font-weight: 600;
         }
 
@@ -2339,7 +2213,7 @@
         }
 
         .executive-list::-webkit-scrollbar-track {
-            background: #f8f9fa;
+            background: rgba(0, 0, 0, 0.2);
             border-radius: 3px;
         }
 
@@ -2349,7 +2223,7 @@
         }
 
         .executive-card {
-            background: #f1f5f9;
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 15px;
@@ -2359,13 +2233,13 @@
 
         .executive-card:hover {
             border-color: var(--accent-blue);
-            background: rgba(0, 119, 204, 0.04);
+            background: rgba(0, 212, 255, 0.05);
         }
 
         .executive-card.selected {
             border-color: var(--accent-blue);
-            background: rgba(0, 119, 204, 0.06);
-            box-shadow: 0 0 20px rgba(0, 119, 204, 0.12);
+            background: rgba(0, 212, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
         }
 
         .executive-card-header {
@@ -2379,7 +2253,6 @@
             width: 45px;
             height: 45px;
             border-radius: 50%;
-            color: #ffffff;
             background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
             display: flex;
             align-items: center;
@@ -2409,7 +2282,7 @@
             gap: 8px;
             margin-top: 10px;
             padding-top: 10px;
-            border-top: 1px solid #e2e8f0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .status-badge {
@@ -2422,22 +2295,22 @@
         }
 
         .status-badge.available {
-            background: rgba(10, 143, 79, 0.08);
+            background: rgba(0, 255, 136, 0.15);
             color: var(--accent-green);
         }
 
         .status-badge.busy {
-            background: rgba(211, 47, 47, 0.08);
+            background: rgba(255, 51, 102, 0.15);
             color: var(--accent-red);
         }
 
         .status-badge.away {
-            background: rgba(198, 124, 0, 0.08);
+            background: rgba(255, 170, 0, 0.15);
             color: var(--accent-yellow);
         }
 
         .status-badge.offline {
-            background: #f1f5f9;
+            background: rgba(255, 255, 255, 0.1);
             color: var(--text-muted);
         }
 
@@ -2460,7 +2333,7 @@
 
         /* Calendar Container */
         .calendar-container {
-            background: #f1f5f9;
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             overflow: hidden;
@@ -2471,7 +2344,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 20px;
-            background: #f8f9fa;
+            background: rgba(0, 0, 0, 0.2);
             border-bottom: 1px solid var(--glass-border);
         }
 
@@ -2485,7 +2358,7 @@
             width: 36px;
             height: 36px;
             border-radius: 8px;
-            background: rgba(0, 119, 204, 0.06);
+            background: rgba(0, 212, 255, 0.1);
             border: 1px solid var(--glass-border);
             color: var(--accent-blue);
             font-size: 16px;
@@ -2498,7 +2371,7 @@
 
         .calendar-nav-btn:hover {
             background: var(--accent-blue);
-            color: #ffffff;
+            color: var(--primary-dark);
         }
 
         .calendar-current-period {
@@ -2511,7 +2384,7 @@
 
         .calendar-today-btn {
             padding: 8px 16px;
-            background: rgba(0, 119, 204, 0.06);
+            background: rgba(0, 212, 255, 0.1);
             border: 1px solid var(--accent-blue);
             color: var(--accent-blue);
             border-radius: 6px;
@@ -2522,7 +2395,7 @@
 
         .calendar-today-btn:hover {
             background: var(--accent-blue);
-            color: #ffffff;
+            color: var(--primary-dark);
         }
 
         /* Calendar Grid */
@@ -2555,7 +2428,7 @@
 
         .calendar-day {
             min-height: 80px;
-            background: #f8f9fa;
+            background: rgba(0, 0, 0, 0.2);
             border: 1px solid transparent;
             border-radius: 8px;
             padding: 8px;
@@ -2565,7 +2438,7 @@
 
         .calendar-day:hover {
             border-color: var(--glass-border);
-            background: rgba(0, 119, 204, 0.04);
+            background: rgba(0, 212, 255, 0.05);
         }
 
         .calendar-day.other-month {
@@ -2574,12 +2447,12 @@
 
         .calendar-day.today {
             border-color: var(--accent-blue);
-            background: rgba(0, 119, 204, 0.06);
+            background: rgba(0, 212, 255, 0.1);
         }
 
         .calendar-day.selected {
             border-color: var(--accent-green);
-            background: rgba(10, 143, 79, 0.06);
+            background: rgba(0, 255, 136, 0.1);
         }
 
         .calendar-day-number {
@@ -2610,27 +2483,27 @@
         }
 
         .calendar-event.meeting {
-            background: rgba(0, 119, 204, 0.12);
+            background: rgba(0, 212, 255, 0.2);
             color: var(--accent-blue);
         }
 
         .calendar-event.client {
-            background: rgba(10, 143, 79, 0.1);
+            background: rgba(0, 255, 136, 0.2);
             color: var(--accent-green);
         }
 
         .calendar-event.travel {
-            background: rgba(123, 66, 198, 0.12);
+            background: rgba(170, 102, 255, 0.2);
             color: var(--accent-purple);
         }
 
         .calendar-event.busy {
-            background: rgba(211, 47, 47, 0.1);
+            background: rgba(255, 51, 102, 0.2);
             color: var(--accent-red);
         }
 
         .calendar-event.pto {
-            background: rgba(198, 124, 0, 0.1);
+            background: rgba(255, 170, 0, 0.2);
             color: var(--accent-yellow);
         }
 
@@ -2665,21 +2538,21 @@
             color: var(--text-muted);
             text-align: right;
             padding-right: 10px;
-            border-top: 1px solid #e2e8f0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .calendar-day-column {
-            border-left: 1px solid #e2e8f0;
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .calendar-hour-slot {
             height: 60px;
-            border-top: 1px solid #e2e8f0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
             position: relative;
         }
 
         .calendar-hour-slot:hover {
-            background: rgba(0, 119, 204, 0.03);
+            background: rgba(0, 212, 255, 0.03);
         }
 
         /* Event Detail Modal */
@@ -2689,7 +2562,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.35);
+            background: rgba(0, 0, 0, 0.8);
             display: none;
             align-items: center;
             justify-content: center;
@@ -2701,8 +2574,8 @@
         }
 
         .event-detail-content {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
             border-radius: 16px;
             padding: 30px;
             max-width: 500px;
@@ -2727,7 +2600,7 @@
             width: 32px;
             height: 32px;
             border-radius: 8px;
-            background: rgba(211, 47, 47, 0.06);
+            background: rgba(255, 51, 102, 0.1);
             border: none;
             color: var(--accent-red);
             font-size: 18px;
@@ -2787,7 +2660,7 @@
             align-items: center;
             gap: 6px;
             padding: 5px 10px;
-            background: rgba(0, 119, 204, 0.06);
+            background: rgba(0, 212, 255, 0.1);
             border-radius: 15px;
             font-size: 12px;
             color: var(--text-secondary);
@@ -2797,7 +2670,6 @@
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            color: #ffffff;
             background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
             display: flex;
             align-items: center;
@@ -2975,12 +2847,6 @@
             <button class="nav-tab" onclick="switchTab('executives')">
                 &#128197; Executives
             </button>
-            <button class="nav-tab" id="sheldonChatBtn" onclick="openSheldonChat()" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: #fff; font-weight: 600; margin-left: auto;">
-                &#128172; SHELDON
-            </button>
-            <button class="nav-tab" id="sopTab" onclick="openLatestSOP()" style="background: #0a8f4f; color: #fff; font-weight: 600;">
-                &#128196; Open S&OP
-            </button>
         </nav>
 
         <!-- Alert Banner - Hidden by default, shown when real alerts exist -->
@@ -3002,30 +2868,39 @@
         <div class="briefing-panel" id="briefingPanel">
             <div class="briefing-header">
                 <div class="briefing-title">
-                    <h2>Chief of Staff Briefing</h2>
+                    <h2>&#127775; Executive Briefing</h2>
                     <span class="live-badge">LIVE</span>
-                    <span class="briefing-age" id="briefingAge"></span>
                 </div>
                 <div class="briefing-controls">
                     <button class="briefing-btn" onclick="playBriefing()">
-                        &#9654; Play
+                        &#9654; Play Briefing
                     </button>
-                    <button class="briefing-btn" onclick="refreshBriefing(false)" id="reportBtn">
-                        &#8635; Refresh
-                    </button>
-                    <button class="briefing-btn" onclick="refreshBriefing(true)" title="Force fresh data from all systems">
-                        &#9889; Force Refresh
+                    <button class="briefing-btn" onclick="refreshBriefing()" id="reportBtn">
+                        &#8635; Morning Report
                     </button>
                     <button class="briefing-btn" onclick="exportBriefing()">
                         &#128190; Export
                     </button>
                 </div>
             </div>
-            <div class="briefing-bottomline" id="briefingBottomLine"></div>
             <div class="briefing-content">
-                <div class="briefing-sections" id="briefingSections">
-                    <div class="briefing-text-fallback" id="briefingText">
+                <div class="briefing-summary">
+                    <div class="briefing-text" id="briefingText">
                         <em style="color: var(--text-muted);">Awaiting live briefing data...</em>
+                    </div>
+                </div>
+                <div class="briefing-metrics">
+                    <div class="briefing-metric">
+                        <span class="metric-label">Overall Health Score</span>
+                        <span class="metric-value" id="healthScore">--</span>
+                    </div>
+                    <div class="briefing-metric">
+                        <span class="metric-label">Active Red Flags</span>
+                        <span class="metric-value" id="redFlagCount">--</span>
+                    </div>
+                    <div class="briefing-metric">
+                        <span class="metric-label">Decisions Pending</span>
+                        <span class="metric-value" id="pendingDecisions">--</span>
                     </div>
                 </div>
             </div>
@@ -4154,18 +4029,15 @@
             // COGS YTD (for Days on Hand / Inventory Turns)
             cogsYTD: `${API_BASE}/financial/cogs-ytd`,
 
-            // Inventory Threshold Alerts
-            inventoryAlerts: `${API_BASE}/inventory/threshold-alerts`,
-
             // People & Quality Data
             peopleSummary: `${API_BASE}/people/summary`,
             qualitySummary: `${API_BASE}/quality/summary`,
             healthScore: `${API_BASE}/health-score`,
             deptKPIs: `${API_BASE}/kpi/departments`,
 
-            // Reports (Chief of Staff AI brief)
-            morningReport: `${API_BASE}/chief-of-staff/brief`,
-            boardReport: `${API_BASE}/chief-of-staff/brief`,
+            // Reports (uses briefing for now)
+            morningReport: `${API_BASE}/briefing`,
+            boardReport: `${API_BASE}/briefing`,
 
             // Analysis (placeholder - uses briefing)
             whatIf: `${API_BASE}/briefing`,
@@ -4209,59 +4081,26 @@
             updateClock();
             setInterval(updateClock, 1000);
             prefetchBriefingData(); // Runs once on page load
-            generateSOP(); // Generate fresh S&OP on startup
         });
 
         async function prefetchBriefingData() {
-            // Show loading state in briefing panel
-            const fallback = document.getElementById('briefingText');
-            if (fallback) fallback.innerHTML = '<em style="color: var(--text-muted);">SHELDON is analyzing all systems — pulling S&OP, financials, operations, quality...</em>';
-
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 180000);
-                // Use Claude Chief of Staff brief for the deep analysis
-                const response = await fetch(`${API_BASE}/chief-of-staff/brief`, { signal: controller.signal });
+                const timeoutId = setTimeout(() => controller.abort(), 120000);
+                const response = await fetch(WEBHOOKS.briefing, { signal: controller.signal });
                 clearTimeout(timeoutId);
                 if (response.ok) {
-                    const data = await response.json();
-                    // Store the AI briefing for the welcome flow
-                    prefetchedBriefing = {
-                        briefing: data.briefing,
-                        tools_used: data.tools_used || [],
-                        kpis: {},
-                        concerns: [],
-                        cached: data.cached || false,
-                        age_seconds: data.age_seconds || 0
-                    };
-                    // Render into section cards
-                    renderBriefingSections(data.briefing);
-                    updateBriefingAge(data);
+                    const text = await response.text();
+                    const cleanText = text.replace(/[\r\n]+/g, ' ');
+                    prefetchedBriefing = JSON.parse(cleanText);
                     document.getElementById('briefingCheck').innerHTML = '&#10003;';
                     document.getElementById('briefingCheck').style.opacity = '1';
-                    document.getElementById('briefingStatusText').textContent = data.cached ? 'Briefing Ready (cached)' : 'Executive Briefing Ready';
+                    document.getElementById('briefingStatusText').textContent = 'Executive Briefing Ready';
                 }
             } catch (error) {
-                console.log('Chief of Staff briefing prefetch failed, will retry on dashboard entry');
-                if (fallback) fallback.innerHTML = '<em style="color: var(--text-muted);">Briefing will load when you enter the dashboard.</em>';
+                console.log('Briefing prefetch failed, will retry on dashboard entry');
                 document.getElementById('briefingStatusText').textContent = 'Briefing will load on entry';
             }
-            // Also fetch the simple KPI data for the cards (parallel, non-blocking)
-            try {
-                const kpiResp = await fetch(WEBHOOKS.briefing);
-                if (kpiResp.ok) {
-                    const kpiData = await kpiResp.json();
-                    updateKPICards(kpiData);
-                }
-            } catch (e) { /* KPI cards are nice-to-have */ }
-        }
-
-        function updateKPICards(data) {
-            const kpis = data.kpis || data;
-            const healthScore = document.getElementById('healthScore');
-            if (healthScore) healthScore.textContent = Math.round(kpis.oee || 0);
-            const redFlagCount = document.getElementById('redFlagCount');
-            if (redFlagCount) redFlagCount.textContent = (data.concerns || []).length || 0;
         }
 
         function initializeWelcome() {
@@ -4320,7 +4159,6 @@
             fetchInventoryData();
             fetchARData();
             fetchFinishedGoods();
-            fetchInventoryAlerts();
             fetchCashPosition();
             fetchGrossMargin();
             fetchCogsYTD();
@@ -4455,36 +4293,20 @@
             }
         }
 
-        function buildBriefingSummaryForChat(rawBriefing) {
-            // Extract BOTTOM LINE for the chat summary
-            const blMatch = rawBriefing.match(/###\s*BOTTOM\s*LINE[^\n]*\n([\s\S]*?)(?=###|$)/i);
-            const bottomLine = blMatch ? blMatch[1].replace(/\*\*/g, '').trim() : '';
-            // Count sections present
-            const sections = [];
-            if (/money\s*moves/i.test(rawBriefing)) sections.push('money moves');
-            if (/watch\s*list/i.test(rawBriefing)) sections.push('watch list items');
-            if (/wins/i.test(rawBriefing)) sections.push('wins');
-            const parts = sections.length > 0 ? sections.join(', ') : 'a full analysis';
-            let summary = `Your briefing is ready — I've pulled ${parts} from all systems. `;
-            if (bottomLine) summary += bottomLine + ' ';
-            summary += 'The full breakdown is in the briefing panel above. What would you like to dig into?';
-            return summary;
-        }
-
         async function playWelcomeBriefing() {
             // Use prefetched data if available
             if (prefetchedBriefing) {
                 const data = prefetchedBriefing;
-                updateBriefingPanel(data);
-                const chatSummary = buildBriefingSummaryForChat(data.briefing);
-                speak(chatSummary, true);
-                addSheldonMessage(chatSummary);
-                // Keep full briefing in conversation history so SHELDON remembers context
+                const briefingText = data.briefing + " How may I assist you today?";
+                speak(briefingText, true);
+                addSheldonMessage(briefingText.replace(/\s+/g, " "));
+                // Add to conversation history so SHELDON remembers the briefing
                 conversationHistory.push({
                     role: 'assistant',
-                    content: data.briefing,
+                    content: briefingText,
                     timestamp: new Date().toISOString()
                 });
+                updateBriefingPanel(data);
                 return;
             }
 
@@ -4499,15 +4321,17 @@
                 const cleanText = text.replace(/[\r\n]+/g, ' ');
                 const data = JSON.parse(cleanText);
 
-                updateBriefingPanel(data);
-                const chatSummary = buildBriefingSummaryForChat(data.briefing || '');
-                speak(chatSummary, true);
-                addSheldonMessage(chatSummary);
+                const briefingText = data.briefing + " How may I assist you today?";
+
+                speak(briefingText, true);
+                addSheldonMessage(briefingText.replace(/\s+/g, " "));
+                // Add to conversation history so SHELDON remembers the briefing
                 conversationHistory.push({
                     role: 'assistant',
-                    content: data.briefing || chatSummary,
+                    content: briefingText,
                     timestamp: new Date().toISOString()
                 });
+                updateBriefingPanel(data);
             } catch (error) {
                 console.error('Error fetching briefing:', error);
                 const now = new Date();
@@ -4516,6 +4340,7 @@
                 const fallback = `${greeting}, Dennis. Live briefing unavailable. How may I assist you today?`;
                 speak(fallback, true);
                 addSheldonMessage(fallback);
+                // Add fallback to history too
                 conversationHistory.push({
                     role: 'assistant',
                     content: fallback,
@@ -4525,32 +4350,53 @@
         }
 
         function updateBriefingPanel(data) {
-            // If we have an AI briefing string, render it into section cards
-            if (data.briefing && typeof data.briefing === 'string' && data.briefing.length > 100) {
-                renderBriefingSections(data.briefing);
-                updateBriefingAge(data);
-            } else {
-                // Fallback: simple KPI summary in fallback div
-                const fallback = document.getElementById('briefingText');
-                if (!fallback) return;
-                const kpis = data.kpis || data;
-                const oee = kpis.oee || 0;
-                const lines = kpis.lines || 0;
-                const revenue = kpis.revenue_mtd || 0;
-                const concerns = data.concerns || [];
-                const oeeClass = oee >= 75 ? 'positive' : 'negative';
-                let concernsHtml = concerns.length > 0
-                    ? concerns.map(c => `&bull; <span class="negative">${c}</span><br>`).join('')
-                    : '&bull; All systems operating normally<br>';
-                fallback.innerHTML = `
-                    <strong>Quick Summary:</strong> Plant OEE at <span class="${oeeClass}">${oee}%</span>,
-                    ${lines} lines reporting, MTD Revenue: $${(revenue / 1000000).toFixed(1)}M<br><br>
-                    ${concernsHtml}
-                    <br><em style="color: var(--text-muted);">Full Chief of Staff briefing loading...</em>
+            const panel = document.getElementById('briefingText');
+            if (!panel) return;
+
+            const now = new Date();
+            const hours = now.getHours();
+            let greeting = hours < 12 ? 'Good morning' : hours < 17 ? 'Good afternoon' : 'Good evening';
+
+            // Handle both new local API format and old Make.com format
+            const kpis = data.kpis || data;
+            const oee = kpis.oee || data.PLANT_OEE || 0;
+            const quality = kpis.quality || data.PLANT_QUALITY || 0;
+            const lines = kpis.lines || data.LINES_REPORTING || 0;
+            const revenue = kpis.revenue_mtd || data.MTD_REVENUE || 0;
+            const concerns = data.concerns || [];
+
+            const oeeClass = oee >= 75 ? 'positive' : 'negative';
+            const qualityClass = quality >= 95 ? 'positive' : 'negative';
+
+            // Build concerns HTML
+            let concernsHtml = '';
+            if (concerns.length > 0) {
+                concernsHtml = concerns.map(c => `&bull; <span class="negative">${c}</span><br>`).join('');
+            } else if (data.PROBLEM_LINES) {
+                concernsHtml = `
+                    &bull; <span class="negative">${data.PROBLEM_LINES} lines</span> running below 70% OEE target<br>
+                    &bull; Worst performer: <strong>${data.WORST_LINE || 'N/A'}</strong> at <span class="negative">${data.WORST_OEE || 0}%</span> OEE<br>
                 `;
+            } else {
+                concernsHtml = '&bull; All systems operating normally<br>';
             }
 
-            updateKPICards(data);
+            panel.innerHTML = `
+                ${greeting}, Dennis. Here's your executive summary for <span class="highlight">today</span>:<br><br>
+                <strong>Performance Highlights:</strong><br>
+                Plant OEE is running at <span class="${oeeClass}">${oee}%</span>.
+                ${quality > 0 ? `Quality holding at <span class="${qualityClass}">${quality}%</span>.` : ''}<br><br>
+                <strong>Items Requiring Attention:</strong><br>
+                ${concernsHtml}<br>
+                <strong>Overview:</strong><br>
+                ${lines} lines reporting &bull; MTD Revenue: $${(revenue / 1000000).toFixed(1)}M
+            `;
+
+            const healthScore = document.getElementById('healthScore');
+            if (healthScore) healthScore.textContent = Math.round(oee);
+
+            const redFlagCount = document.getElementById('redFlagCount');
+            if (redFlagCount) redFlagCount.textContent = concerns.length || data.PROBLEM_LINES || 0;
         }
 
         // ============================================
@@ -4689,105 +4535,6 @@
             text = text.replace(/`(.+?)`/g, '<code>$1</code>');
             // Emoji passthrough (already unicode)
             return text;
-        }
-
-        // ============================================
-        // BRIEFING SECTION RENDERER
-        // ============================================
-        const BRIEFING_SECTION_MAP = {
-            'money':     { pattern: /money\s*moves/i, icon: '\uD83D\uDCB0', title: 'MONEY MOVES', fullWidth: true },
-            'plan':      { pattern: /plan\s*vs\s*reality|s&op\s*execution/i, icon: '\uD83D\uDCCA', title: 'PLAN vs REALITY', fullWidth: true },
-            'financial': { pattern: /financial\s*pulse/i, icon: '\uD83D\uDCC8', title: 'FINANCIAL PULSE', fullWidth: false },
-            'watch':     { pattern: /watch\s*list/i, icon: '\uD83D\uDC41', title: 'WATCH LIST', fullWidth: false },
-            'wins':      { pattern: /wins/i, icon: '\uD83C\uDFC6', title: 'WINS', fullWidth: false },
-        };
-
-        function renderBriefingSections(rawMarkdown) {
-            if (!rawMarkdown) return;
-
-            const sectionsContainer = document.getElementById('briefingSections');
-            const bottomLineEl = document.getElementById('briefingBottomLine');
-            if (!sectionsContainer) return;
-
-            // Split on ### headers
-            const parts = rawMarkdown.split(/^###\s+/m);
-            const intro = parts[0].trim();
-            const sections = [];
-            let bottomLine = null;
-
-            for (let i = 1; i < parts.length; i++) {
-                const newlineIdx = parts[i].indexOf('\n');
-                const heading = newlineIdx > -1 ? parts[i].substring(0, newlineIdx).trim() : parts[i].trim();
-                const body = newlineIdx > -1 ? parts[i].substring(newlineIdx + 1).trim() : '';
-
-                // Check if this is BOTTOM LINE
-                if (/bottom\s*line/i.test(heading)) {
-                    bottomLine = body;
-                    continue;
-                }
-
-                // Match to known section
-                let sectionKey = null;
-                for (const [key, cfg] of Object.entries(BRIEFING_SECTION_MAP)) {
-                    if (cfg.pattern.test(heading)) {
-                        sectionKey = key;
-                        break;
-                    }
-                }
-                sections.push({ key: sectionKey, heading, body });
-            }
-
-            // Render BOTTOM LINE callout
-            if (bottomLineEl) {
-                if (bottomLine) {
-                    bottomLineEl.innerHTML = `<div class="bl-label">Bottom Line</div>${renderMarkdown(bottomLine)}`;
-                    bottomLineEl.style.display = 'block';
-                } else {
-                    bottomLineEl.style.display = 'none';
-                }
-            }
-
-            // Render section cards
-            let html = '';
-            for (const sec of sections) {
-                const cfg = sec.key ? BRIEFING_SECTION_MAP[sec.key] : null;
-                const icon = cfg ? cfg.icon : '\uD83D\uDCCB';
-                const title = cfg ? cfg.title : sec.heading;
-                const dataAttr = sec.key ? ` data-section="${sec.key}"` : '';
-                const fullWidth = cfg ? cfg.fullWidth : true;
-                const fwClass = fullWidth ? ' full-width' : '';
-
-                html += `<div class="briefing-section-card${fwClass}"${dataAttr}>
-                    <div class="section-header">
-                        <span class="section-icon">${icon}</span>
-                        <span class="section-title">${title}</span>
-                    </div>
-                    <div class="section-body">${renderMarkdown(sec.body)}</div>
-                </div>`;
-            }
-
-            // If no sections were parsed, fall back to full markdown render
-            if (sections.length === 0) {
-                html = `<div class="briefing-text-fallback">${renderMarkdown(rawMarkdown)}</div>`;
-            }
-
-            sectionsContainer.innerHTML = html;
-        }
-
-        function updateBriefingAge(data) {
-            const ageEl = document.getElementById('briefingAge');
-            if (!ageEl) return;
-
-            if (data.cached && data.age_seconds != null) {
-                const mins = Math.round(data.age_seconds / 60);
-                ageEl.textContent = mins < 1 ? 'Just generated' : `${mins}m ago`;
-                ageEl.classList.add('cached');
-                ageEl.style.display = 'inline-block';
-            } else {
-                ageEl.textContent = 'Just generated';
-                ageEl.classList.remove('cached');
-                ageEl.style.display = 'inline-block';
-            }
         }
 
         // ============================================
@@ -5188,114 +4935,6 @@
         // ============================================
         // KPI DASHBOARD
         // ============================================
-        // ============================================
-        // PRODUCTION SCHEDULES
-        // ============================================
-        async function loadProductionSchedules() {
-            try {
-                const resp = await fetch(WEBHOOKS.productionSchedules);
-                const data = await resp.json();
-                const foodsEl = document.getElementById('schedFoods');
-                if (foodsEl && data.facilities && data.facilities.foods) {
-                    const foods = data.facilities.foods;
-                    if (Array.isArray(foods) && foods.length > 0) {
-                        let html = '<table style="width:100%;border-collapse:collapse;font-size:0.85em;"><thead><tr>';
-                        html += '<th style="text-align:left;padding:6px;border-bottom:2px solid var(--glass-border);">Date</th>';
-                        html += '<th style="text-align:left;padding:6px;border-bottom:2px solid var(--glass-border);">Line</th>';
-                        html += '<th style="text-align:left;padding:6px;border-bottom:2px solid var(--glass-border);">Product</th>';
-                        html += '<th style="text-align:left;padding:6px;border-bottom:2px solid var(--glass-border);">Customer</th>';
-                        html += '<th style="text-align:right;padding:6px;border-bottom:2px solid var(--glass-border);">Target</th>';
-                        html += '<th style="text-align:left;padding:6px;border-bottom:2px solid var(--glass-border);">Time</th>';
-                        html += '</tr></thead><tbody>';
-                        foods.forEach(r => {
-                            const date = r.prodDate ? new Date(r.prodDate).toLocaleDateString() : '--';
-                            html += `<tr><td style="padding:6px;">${date}</td><td style="padding:6px;">${r.line||'--'}</td><td style="padding:6px;">${r.prodDescr||r.product||'--'}</td><td style="padding:6px;">${r.customer||'--'}</td><td style="text-align:right;padding:6px;">${(r.targetVal||0).toLocaleString()}</td><td style="padding:6px;">${r.begTime||'--'} - ${r.endTime||'--'}</td></tr>`;
-                        });
-                        html += '</tbody></table>';
-                        foodsEl.innerHTML = html;
-                    } else if (foods.status === 'error') {
-                        foodsEl.innerHTML = '<p style="color:var(--accent-red);">Error: ' + (foods.error || 'Unknown') + '</p>';
-                    }
-                }
-            } catch (e) {
-                console.error('Failed to load production schedules:', e);
-            }
-        }
-
-        // S&OP state
-        let _sopFilePath = null;
-        let _sopGenerating = false;
-
-        async function generateSOP() {
-            if (_sopGenerating) return;
-            _sopGenerating = true;
-            const tab = document.getElementById('sopTab');
-            if (tab) tab.textContent = '⏳ Generating S&OP...';
-            try {
-                const resp = await fetch(WEBHOOKS.sopGenerate, { method: 'POST' });
-                const data = await resp.json();
-                if (data.status === 'success') {
-                    _sopFilePath = data.file_path;
-                    if (tab) { tab.textContent = '📄 Open S&OP'; tab.style.background = '#0a8f4f'; }
-                    console.log('S&OP generated:', _sopFilePath);
-                } else {
-                    console.warn('S&OP generation issue:', data.message || data.error);
-                    // Fall back to latest existing report
-                    await _fallbackToLatestSOP(tab);
-                }
-            } catch (e) {
-                console.error('S&OP generation failed:', e);
-                await _fallbackToLatestSOP(tab);
-            }
-            _sopGenerating = false;
-        }
-
-        async function _fallbackToLatestSOP(tab) {
-            try {
-                const resp = await fetch(`${API_BASE}/sop/latest`);
-                const data = await resp.json();
-                if (data.status === 'found') {
-                    _sopFilePath = data.file_path;
-                    if (tab) { tab.textContent = '📄 Open S&OP'; tab.style.background = '#0a8f4f'; }
-                    console.log('Using existing S&OP:', _sopFilePath);
-                } else {
-                    if (tab) { tab.textContent = '📄 S&OP Unavailable'; tab.style.background = '#d32f2f'; }
-                }
-            } catch (e2) {
-                if (tab) { tab.textContent = '📄 S&OP Unavailable'; tab.style.background = '#888'; }
-            }
-        }
-
-        async function openLatestSOP() {
-            try {
-                // If we already have a path from generation, open it
-                if (_sopFilePath) {
-                    await fetch(`${API_BASE}/sop/open`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ file_path: _sopFilePath })
-                    });
-                    return;
-                }
-                // Otherwise try to find and open the latest
-                const resp = await fetch(`${API_BASE}/sop/latest`);
-                const data = await resp.json();
-                if (data.status === 'found') {
-                    _sopFilePath = data.file_path;
-                    await fetch(`${API_BASE}/sop/open`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ file_path: data.file_path })
-                    });
-                } else {
-                    // No report exists yet, generate one
-                    generateSOP();
-                }
-            } catch (e) {
-                console.error('Failed to open S&OP:', e);
-            }
-        }
-
         function filterKPIDept(dept) {
             // Update active button
             document.querySelectorAll('.kpi-dept-btn').forEach(btn => btn.classList.remove('active'));
@@ -5417,7 +5056,6 @@
                 fetchInventoryData();
                 fetchARData();
                 fetchFinishedGoods();
-                fetchInventoryAlerts();
                 fetchCashPosition();
                 fetchGrossMargin();
                 fetchCogsYTD();
@@ -5439,7 +5077,6 @@
                 fetchInventoryData();
                 fetchARData();
                 fetchFinishedGoods();
-                fetchInventoryAlerts();
                 fetchCashPosition();
                 fetchGrossMargin();
                 fetchCogsYTD();
@@ -5543,27 +5180,6 @@
 
                 const el = document.getElementById('kpiInventory');
                 if (el) el.textContent = turns + 'x';
-            }
-        }
-
-        async function fetchInventoryAlerts() {
-            try {
-                const response = await fetch(WEBHOOKS.inventoryAlerts);
-                if (!response.ok) throw new Error('Inventory alerts fetch failed');
-                const data = await response.json();
-                window.currentInventoryAlerts = data;
-
-                // Update "Below Threshold" count on dashboard card
-                const belowEl = document.getElementById('invBelowThreshold');
-                if (belowEl) {
-                    const count = data.belowThreshold || 0;
-                    const holdCount = data.qualityHoldCount || 0;
-                    const totalAlerts = count + holdCount;
-                    belowEl.textContent = totalAlerts;
-                    belowEl.style.color = totalAlerts > 0 ? '#ff6b6b' : '#0a8f4f';
-                }
-            } catch (error) {
-                console.error('Error fetching inventory alerts:', error);
             }
         }
 
@@ -5733,13 +5349,13 @@
                 el.textContent = score;
                 // Color code based on status
                 if (status === 'excellent') {
-                    el.style.color = '#0a8f4f';
+                    el.style.color = '#00ff88';
                 } else if (status === 'good') {
                     el.style.color = '#4ecdc4';
                 } else if (status === 'fair') {
                     el.style.color = '#ffd700';
                 } else {
-                    el.style.color = '#d32f2f';
+                    el.style.color = '#ff6b6b';
                 }
             }
 
@@ -5974,60 +5590,6 @@
         setStatus(document.querySelector('[data-dept="quality"] .kpi-dept-status')?.id, 'Live', 'live');
         const qualSrc = document.getElementById('kpiQualUpdated');
         if (qualSrc) qualSrc.textContent = 'CI DB + Donna QA | ' + new Date().toLocaleTimeString();
-    }
-
-    // ── MRE QUALITY (populates MRE tab) ──
-    if (qual.mreFailureRate && isLive(qual.mreFailureRate)) {
-        const mre = Array.isArray(qual.mreFailureRate) ? qual.mreFailureRate : [qual.mreFailureRate];
-        if (mre.length > 0) {
-            const latest = mre[0];
-            const el = document.getElementById('mreCurrentRate');
-            if (el) { el.textContent = (latest.failure_rate_pct || 0) + '%'; el.style.color = latest.failure_rate_pct <= 2 ? 'var(--accent-green)' : latest.failure_rate_pct <= 5 ? 'var(--accent-yellow)' : 'var(--accent-red)'; }
-            const fp = document.getElementById('mreFailedPallets');
-            if (fp) fp.textContent = (latest.failed_pallets || 0).toLocaleString();
-            const tp = document.getElementById('mreTotalPallets');
-            if (tp) tp.textContent = (latest.total_pallets || 0).toLocaleString();
-            const fe = document.getElementById('mreFailedEaches');
-            if (fe) fe.textContent = (latest.failed_eaches || 0).toLocaleString();
-        }
-        // Build history table
-        if (mre.length > 1) {
-            const tableEl = document.getElementById('mreHistoryTable');
-            if (tableEl) {
-                let html = '<h3 style="margin-bottom:8px;">MRE Failure Rate History</h3><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="text-align:left;padding:6px;border-bottom:2px solid var(--glass-border);">Month</th><th style="text-align:right;padding:6px;border-bottom:2px solid var(--glass-border);">Failed</th><th style="text-align:right;padding:6px;border-bottom:2px solid var(--glass-border);">Total</th><th style="text-align:right;padding:6px;border-bottom:2px solid var(--glass-border);">Rate</th></tr></thead><tbody>';
-                mre.forEach(r => {
-                    const monthNames = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                    html += `<tr><td style="padding:6px;">${monthNames[r.mo]} ${r.yr}</td><td style="text-align:right;padding:6px;">${(r.failed_pallets||0).toLocaleString()}</td><td style="text-align:right;padding:6px;">${(r.total_pallets||0).toLocaleString()}</td><td style="text-align:right;padding:6px;font-weight:600;">${r.failure_rate_pct}%</td></tr>`;
-                });
-                html += '</tbody></table>';
-                tableEl.innerHTML = html;
-            }
-        }
-    }
-    if (qual.internalQAFailures && isLive(qual.internalQAFailures)) {
-        const qa = Array.isArray(qual.internalQAFailures) ? qual.internalQAFailures : [qual.internalQAFailures];
-        if (qa.length > 0) {
-            // Overall rate across all contracts
-            const totalFailed = qa.reduce((s,r) => s + (r.failed_pallets||0), 0);
-            const totalProd = qa.reduce((s,r) => s + (r.total_pallets||0), 0);
-            const overallRate = totalProd > 0 ? (totalFailed / totalProd * 100).toFixed(2) : 0;
-            const el = document.getElementById('qaOverallRate');
-            if (el) { el.textContent = overallRate + '%'; el.style.color = overallRate <= 2 ? 'var(--accent-green)' : overallRate <= 5 ? 'var(--accent-yellow)' : 'var(--accent-red)'; }
-            // By contract breakdown
-            const contracts = {};
-            qa.forEach(r => { if (!contracts[r.cont]) contracts[r.cont] = {failed:0,total:0}; contracts[r.cont].failed += r.failed_pallets||0; contracts[r.cont].total += r.total_pallets||0; });
-            const el2 = document.getElementById('qaByContract');
-            if (el2) el2.textContent = Object.keys(contracts).length + ' contracts';
-            const bd = document.getElementById('qaContractBreakdown');
-            if (bd) {
-                let html = '';
-                Object.entries(contracts).sort((a,b) => b[1].failed - a[1].failed).forEach(([cont, d]) => {
-                    const rate = d.total > 0 ? (d.failed / d.total * 100).toFixed(2) : 0;
-                    html += `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--glass-border);"><span>${cont}</span><span style="font-weight:600;">${rate}% (${d.failed}/${d.total})</span></div>`;
-                });
-                bd.innerHTML = html;
-            }
-        }
     }
 
     // ── SAFETY ──
@@ -6614,60 +6176,40 @@
                         </div>
                     `
                 },
-                inventory: (() => {
-                    const alerts = window.currentInventoryAlerts || {};
-                    const belowCount = alerts.belowThreshold || 0;
-                    const holdCount = alerts.qualityHoldCount || 0;
-                    const holdValue = alerts.qualityHoldValue || 0;
-                    const expiringCount = alerts.expiringCount || 0;
-                    const belowClass = belowCount > 0 ? 'negative' : 'positive';
-                    const holdClass = holdCount > 0 ? 'negative' : 'positive';
-                    return {
-                        icon: '&#128230;',
-                        title: 'Inventory Status',
-                        content: `
-                            <div class="drill-stats-grid">
-                                <div class="drill-stat-card">
-                                    <div class="drill-stat-value">${document.getElementById('invTotalValue')?.textContent || '--'}</div>
-                                    <div class="drill-stat-label">Total Inventory Value</div>
-                                    <div class="drill-stat-change up">${document.getElementById('invDaysOnHand')?.textContent || '--'} days on hand</div>
-                                </div>
-                                <div class="drill-stat-card">
-                                    <div class="drill-stat-value ${belowClass}">${belowCount}</div>
-                                    <div class="drill-stat-label">FG Items Below ${alerts.thresholdDays || 7}-Day Supply</div>
-                                    <div class="drill-stat-change ${belowCount > 0 ? 'down' : 'up'}">${belowCount > 0 ? 'Action Required' : 'All Clear'}</div>
-                                </div>
-                                <div class="drill-stat-card">
-                                    <div class="drill-stat-value ${holdClass}">${holdCount}</div>
-                                    <div class="drill-stat-label">On Quality Hold</div>
-                                    <div class="drill-stat-change ${holdCount > 0 ? 'down' : 'up'}">$${(holdValue / 1000000).toFixed(2)}M held</div>
-                                </div>
+                inventory: {
+                    icon: '&#128230;',
+                    title: 'Inventory Status',
+                    content: `
+                        <div class="drill-stats-grid">
+                            <div class="drill-stat-card">
+                                <div class="drill-stat-value">${document.getElementById('invTotalValue')?.textContent || '$8.2M'}</div>
+                                <div class="drill-stat-label">Total Inventory Value</div>
+                                <div class="drill-stat-change up">Within target range</div>
                             </div>
-                            <div class="drill-section">
-                                <div class="drill-section-title">Low Stock Alerts (< ${alerts.thresholdDays || 7} Days Supply)</div>
-                                <table class="drill-table" id="drillInventoryTable">
-                                    <thead>
-                                        <tr><th>SKU</th><th>Description</th><th>Facility</th><th>On Hand</th><th>Days Supply</th><th>Status</th></tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;"><em>Loading...</em></td></tr>
-                                    </tbody>
-                                </table>
+                            <div class="drill-stat-card">
+                                <div class="drill-stat-value">${kpis.inventory || '8.4x'}</div>
+                                <div class="drill-stat-label">Inventory Turns</div>
+                                <div class="drill-stat-change down">&#9660; 2% vs target</div>
                             </div>
-                            <div class="drill-section" style="margin-top: 20px;">
-                                <div class="drill-section-title">Quality Holds</div>
-                                <table class="drill-table" id="drillQualityHoldTable">
-                                    <thead>
-                                        <tr><th>SKU</th><th>Description</th><th>Facility</th><th>Status</th><th>Qty Held</th><th>Hold Value</th></tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;"><em>Loading...</em></td></tr>
-                                    </tbody>
-                                </table>
+                            <div class="drill-stat-card">
+                                <div class="drill-stat-value negative">1</div>
+                                <div class="drill-stat-label">Items Below Threshold</div>
+                                <div class="drill-stat-change down">Action Required</div>
                             </div>
-                        `
-                    };
-                })(),
+                        </div>
+                        <div class="drill-section">
+                            <div class="drill-section-title">Critical Stock Alerts</div>
+                            <table class="drill-table" id="drillInventoryTable">
+                                <thead>
+                                    <tr><th>SKU</th><th>Description</th><th>On Hand</th><th>Days Supply</th><th>Status</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;"><em>Awaiting live data connection...</em></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    `
+                },
                 labor: {
                     icon: '&#128101;',
                     title: 'Workforce Analytics',
@@ -6730,13 +6272,13 @@
                             tbody.innerHTML = lines.slice(0, 10).map(line => {
                                 const oee = parseFloat(line.AVG_OEE || 0);
                                 const status = oee >= 85 ? 'good' : oee >= 70 ? 'warning' : 'critical';
-                                const statusBadge = status === 'good' ? '<span style="color:#0a8f4f">Active</span>' :
+                                const statusBadge = status === 'good' ? '<span style="color:#00ff88">Active</span>' :
                                                    status === 'warning' ? '<span style="color:#ffd700">Warning</span>' :
                                                    '<span style="color:#ff6b6b">Critical</span>';
                                 return `<tr>
                                     <td>${line.LINE_NAME || 'N/A'}</td>
                                     <td>${line.AREA || 'N/A'}</td>
-                                    <td style="color: ${oee >= 70 ? '#0a8f4f' : '#d32f2f'}">${oee.toFixed(1)}%</td>
+                                    <td style="color: ${oee >= 70 ? '#00ff88' : '#ff6b6b'}">${oee.toFixed(1)}%</td>
                                     <td>${(line.TOTAL_OUTPUT || 0).toLocaleString()}</td>
                                     <td>${statusBadge}</td>
                                 </tr>`;
@@ -6752,7 +6294,7 @@
                 if (tbody) {
                     tbody.innerHTML = `<tr>
                         <td colspan="5" style="text-align: center; padding: 20px;">
-                            <div style="color: #0a8f4f; font-size: 1.2em; margin-bottom: 10px;">No Quality Holds</div>
+                            <div style="color: #00ff88; font-size: 1.2em; margin-bottom: 10px;">No Quality Holds</div>
                             <div style="color: var(--text-muted);">All lots released. Total output: ${(qd.totalOutput || 0).toLocaleString()} units</div>
                             <div style="margin-top: 15px; color: #4ecdc4;">Certifications: ${(qd.certifications || []).join(', ')}</div>
                         </td>
@@ -6765,9 +6307,9 @@
                 const tbody = document.querySelector('#drillLaborTable tbody');
                 if (tbody) {
                     tbody.innerHTML = `
-                        <tr><td>Production</td><td>${pd.headcount || 0}</td><td>--</td><td>--</td><td><span style="color:#0a8f4f">Staffed</span></td></tr>
-                        <tr><td>Quality</td><td>--</td><td>--</td><td>--</td><td><span style="color:#0a8f4f">Staffed</span></td></tr>
-                        <tr><td>Maintenance</td><td>--</td><td>--</td><td>--</td><td><span style="color:#0a8f4f">Staffed</span></td></tr>
+                        <tr><td>Production</td><td>${pd.headcount || 0}</td><td>--</td><td>--</td><td><span style="color:#00ff88">Staffed</span></td></tr>
+                        <tr><td>Quality</td><td>--</td><td>--</td><td>--</td><td><span style="color:#00ff88">Staffed</span></td></tr>
+                        <tr><td>Maintenance</td><td>--</td><td>--</td><td>--</td><td><span style="color:#00ff88">Staffed</span></td></tr>
                         <tr><td colspan="5" style="text-align:center; padding-top: 15px; color: var(--text-muted);">
                             Total Manhours (24h): ${(pd.totalManhours || 0).toLocaleString()} |
                             Lines Staffed: ${pd.linesStaffed || 0} |
@@ -6782,8 +6324,8 @@
                 const tbody = document.querySelector('#drillRevenueTable tbody');
                 if (tbody) {
                     tbody.innerHTML = `
-                        <tr><td>Government/Military</td><td>$${((gm.revenue || 0) * 0.6 / 1000000).toFixed(1)}M</td><td>60%</td><td><span style="color:#0a8f4f">+5%</span></td><td>&#9650;</td></tr>
-                        <tr><td>Commercial</td><td>$${((gm.revenue || 0) * 0.25 / 1000000).toFixed(1)}M</td><td>25%</td><td><span style="color:#0a8f4f">+3%</span></td><td>&#9650;</td></tr>
+                        <tr><td>Government/Military</td><td>$${((gm.revenue || 0) * 0.6 / 1000000).toFixed(1)}M</td><td>60%</td><td><span style="color:#00ff88">+5%</span></td><td>&#9650;</td></tr>
+                        <tr><td>Commercial</td><td>$${((gm.revenue || 0) * 0.25 / 1000000).toFixed(1)}M</td><td>25%</td><td><span style="color:#00ff88">+3%</span></td><td>&#9650;</td></tr>
                         <tr><td>Retail</td><td>$${((gm.revenue || 0) * 0.15 / 1000000).toFixed(1)}M</td><td>15%</td><td><span style="color:#ffd700">On Target</span></td><td>&#8594;</td></tr>
                         <tr><td colspan="5" style="text-align:center; padding-top: 15px; color: var(--text-muted);">
                             AR Days: ${ar.arDays || '--'} | Total AR: $${((ar.totalAR || 0) / 1000000).toFixed(1)}M
@@ -6791,49 +6333,19 @@
                 }
             }
             else if (metric === 'inventory') {
-                const alerts = window.currentInventoryAlerts || {};
-
-                // Populate low-stock alerts table
+                // Use current inventory data
+                const inv = window.currentInventoryData || {};
                 const tbody = document.querySelector('#drillInventoryTable tbody');
                 if (tbody) {
-                    const items = alerts.alerts || [];
-                    if (items.length > 0) {
-                        tbody.innerHTML = items.map(item => {
-                            const statusColor = item.status === 'CRITICAL' ? '#ff6b6b' : '#ffd700';
-                            const statusLabel = item.status === 'CRITICAL' ? 'CRITICAL' : 'LOW';
-                            return `<tr>
-                                <td>${item.sku}</td>
-                                <td>${item.description || ''}</td>
-                                <td>${item.facility || ''}</td>
-                                <td>${Number(item.onHand).toLocaleString()}</td>
-                                <td style="color: ${statusColor}; font-weight: 600;">${item.daysSupply}d</td>
-                                <td><span style="color:${statusColor}; font-weight:600;">${statusLabel}</span></td>
-                            </tr>`;
-                        }).join('');
-                    } else {
-                        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: #0a8f4f; padding: 20px;">All finished goods above ${alerts.thresholdDays || 7}-day supply threshold</td></tr>`;
+                    const facilities = inv.byFacility || {};
+                    let rows = '';
+                    for (const [fac, val] of Object.entries(facilities)) {
+                        rows += `<tr><td>${fac}</td><td>Facility Inventory</td><td>$${(val / 1000000).toFixed(2)}M</td><td>--</td><td><span style="color:#00ff88">Normal</span></td></tr>`;
                     }
-                }
-
-                // Populate quality holds table
-                const holdTbody = document.querySelector('#drillQualityHoldTable tbody');
-                if (holdTbody) {
-                    const holds = alerts.qualityHolds || [];
-                    if (holds.length > 0) {
-                        holdTbody.innerHTML = holds.map(h => {
-                            const statusText = h.holdStatus === 'QH' ? 'QC Hold' : 'QC Review';
-                            return `<tr>
-                                <td>${h.sku}</td>
-                                <td>${h.description || ''}</td>
-                                <td>${h.facility || ''}</td>
-                                <td><span style="color:#ffd700;">${statusText}</span></td>
-                                <td>${Number(h.onHold).toLocaleString()}</td>
-                                <td>$${(h.holdValue / 1000).toFixed(1)}K</td>
-                            </tr>`;
-                        }).join('');
-                    } else {
-                        holdTbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: #0a8f4f; padding: 20px;">No items on quality hold</td></tr>`;
+                    if (!rows) {
+                        rows = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted);">Inventory data loading...</td></tr>`;
                     }
+                    tbody.innerHTML = rows;
                 }
             }
         }
@@ -6901,55 +6413,47 @@
             playWelcomeBriefing();
         }
 
-        function refreshBriefing(force = false) {
-            fetchMorningReport(force);
+        function refreshBriefing() {
+            fetchMorningReport();
         }
 
-        async function fetchMorningReport(force = false) {
-            showLoading(force ? 'Pulling fresh data from all systems...' : 'Generating report...');
-            speak(force ? 'Pulling fresh data from all systems. This may take a minute.' : 'One moment while I compile your report.');
-
-            // Show loading state in sections
-            const sectionsContainer = document.getElementById('briefingSections');
-            if (sectionsContainer) sectionsContainer.innerHTML = '<div class="briefing-text-fallback"><em style="color: var(--text-muted);">SHELDON is analyzing all systems...</em></div>';
-            const blEl = document.getElementById('briefingBottomLine');
-            if (blEl) blEl.style.display = 'none';
+        async function fetchMorningReport() {
+            showLoading('Generating report...');
+            speak('One moment while I compile your report. I\'m pulling fresh data, so this may take a moment.');
 
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 180000);
+                const timeoutId = setTimeout(() => controller.abort(), 120000);
 
-                const url = force ? `${API_BASE}/chief-of-staff/brief?force=true` : `${API_BASE}/chief-of-staff/brief`;
-                const response = await fetch(url, { signal: controller.signal });
+                const hour = new Date().getHours();
+                const timeOfDay = hour < 12 ? 'morning' : 'afternoon';
+
+                const response = await fetch(WEBHOOKS.morningReport + '?timeOfDay=' + timeOfDay, {
+                    signal: controller.signal
+                });
                 clearTimeout(timeoutId);
 
-                if (!response.ok) throw new Error('Chief of Staff brief failed');
+                if (!response.ok) throw new Error('Morning report fetch failed');
 
-                const data = await response.json();
+                const text = await response.text();
+                const cleanText = text.replace(/[\r\n]+/g, ' ');
+                const data = JSON.parse(cleanText);
 
                 hideLoading();
 
-                const report = data.briefing || 'Unable to generate briefing.';
+                const report = data.report || 'Unable to generate morning report.';
 
-                // Render into section cards
-                renderBriefingSections(report);
-                updateBriefingAge(data);
+                // Update briefing panel with the report
+                const panel = document.getElementById('briefingText');
+                if (panel) {
+                    panel.innerHTML = report.replace(/\n/g, '<br>');
+                }
 
-                // Store for playback
-                prefetchedBriefing = {
-                    briefing: report,
-                    tools_used: data.tools_used || [],
-                    kpis: {},
-                    concerns: [],
-                    cached: data.cached || false,
-                    age_seconds: data.age_seconds || 0
-                };
+                // Speak and add to chat
+                speak(report);
+                addSheldonMessage(report);
 
-                // Short summary in chat, full content in panel
-                const chatSummary = buildBriefingSummaryForChat(report);
-                addSheldonMessage(chatSummary);
-
-                // Full briefing in conversation history for context
+                // Add to conversation history
                 conversationHistory.push({
                     role: 'assistant',
                     content: report,
@@ -6979,130 +6483,105 @@
                 const timeStr = now.toLocaleTimeString('en-US', {
                     hour: '2-digit', minute: '2-digit'
                 });
-                const pageWidth = 216;
-                const margin = 20;
-                const contentWidth = pageWidth - margin * 2;
 
-                // Header bar
-                pdf.setFillColor(26, 26, 46);
-                pdf.rect(0, 0, pageWidth, 38, 'F');
-                pdf.setTextColor(0, 119, 204);
-                pdf.setFontSize(22);
+                // Header
+                pdf.setFillColor(3, 5, 8);
+                pdf.rect(0, 0, 216, 40, 'F');
+                pdf.setTextColor(0, 212, 255);
+                pdf.setFontSize(24);
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('SHELDON', margin, 18);
-                pdf.setFontSize(9);
+                pdf.text('SHELDON', 20, 20);
+                pdf.setFontSize(10);
                 pdf.setTextColor(160, 174, 192);
-                pdf.text('Chief of Staff Briefing', margin, 26);
-                pdf.text(`${dateStr} at ${timeStr}`, margin, 33);
+                pdf.text('Executive Intelligence System', 20, 28);
+                pdf.text(`Generated: ${dateStr} at ${timeStr}`, 20, 35);
 
-                // Briefing body — use actual AI briefing text
-                const rawBriefing = prefetchedBriefing ? prefetchedBriefing.briefing : '';
-                if (!rawBriefing) {
-                    pdf.setTextColor(100, 100, 100);
-                    pdf.setFontSize(12);
-                    pdf.text('No briefing data available. Generate a briefing first.', margin, 55);
-                } else {
-                    // Strip markdown to clean text lines
-                    const clean = rawBriefing
-                        .replace(/\*\*(.+?)\*\*/g, '$1')
-                        .replace(/\*(.+?)\*/g, '$1')
-                        .replace(/`(.+?)`/g, '$1');
+                // Executive Briefing Section
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFillColor(15, 20, 25);
+                pdf.rect(0, 40, 216, 260, 'F');
 
-                    const lines = clean.split('\n');
-                    let yPos = 48;
-                    const lineHeight = 5.5;
-                    const sectionColors = {
-                        'money': [198, 124, 0],
-                        'plan': [0, 119, 204],
-                        'financial': [10, 143, 79],
-                        'watch': [211, 47, 47],
-                        'wins': [10, 143, 79],
-                        'bottom': [26, 26, 46]
-                    };
+                pdf.setTextColor(0, 212, 255);
+                pdf.setFontSize(16);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Executive Briefing', 20, 55);
 
-                    for (const line of lines) {
-                        // Check for page overflow
-                        if (yPos > 265) {
-                            // Footer
-                            pdf.setTextColor(150, 150, 150);
-                            pdf.setFontSize(7);
-                            pdf.text('CONFIDENTIAL', margin, 275);
-                            pdf.text('SHELDON Executive Intelligence System', pageWidth - margin - 55, 275);
-                            pdf.addPage();
-                            yPos = 20;
-                        }
+                // Get current KPI values
+                const kpis = getCurrentKPIs();
 
-                        const trimmed = line.trim();
-                        if (!trimmed) { yPos += 3; continue; }
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'normal');
 
-                        // Section headers (### )
-                        if (trimmed.startsWith('### ') || trimmed.startsWith('## ')) {
-                            const heading = trimmed.replace(/^#{2,3}\s+/, '');
-                            yPos += 4;
-                            // Determine color
-                            let color = [0, 119, 204];
-                            for (const [key, c] of Object.entries(sectionColors)) {
-                                if (heading.toLowerCase().includes(key)) { color = c; break; }
-                            }
-                            pdf.setDrawColor(...color);
-                            pdf.setLineWidth(0.8);
-                            pdf.line(margin, yPos - 1, margin + contentWidth, yPos - 1);
-                            pdf.setTextColor(...color);
-                            pdf.setFontSize(11);
-                            pdf.setFont('helvetica', 'bold');
-                            pdf.text(heading.toUpperCase(), margin, yPos + 5);
-                            yPos += 10;
-                            continue;
-                        }
+                let yPos = 70;
+                const lineHeight = 8;
 
-                        // Table rows
-                        if (trimmed.startsWith('|')) {
-                            if (trimmed.replace(/[|\s-:]/g, '') === '') continue; // separator
-                            pdf.setFont('helvetica', 'normal');
-                            pdf.setFontSize(8);
-                            pdf.setTextColor(40, 40, 40);
-                            const cells = trimmed.split('|').filter(c => c.trim());
-                            const cellWidth = contentWidth / cells.length;
-                            cells.forEach((cell, i) => {
-                                pdf.text(cell.trim().substring(0, 25), margin + i * cellWidth, yPos);
-                            });
-                            yPos += lineHeight;
-                            continue;
-                        }
+                // KPI Summary
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Key Performance Indicators', 20, yPos);
+                yPos += lineHeight * 1.5;
 
-                        // Bullet items
-                        if (trimmed.startsWith('- ') || trimmed.match(/^\d+\.\s/)) {
-                            const text = trimmed.replace(/^[-\d.]+\s*/, '');
-                            pdf.setFont('helvetica', 'normal');
-                            pdf.setFontSize(9);
-                            pdf.setTextColor(45, 55, 72);
-                            const wrapped = pdf.splitTextToSize('\u2022  ' + text, contentWidth - 5);
-                            pdf.text(wrapped, margin + 3, yPos);
-                            yPos += wrapped.length * lineHeight;
-                            continue;
-                        }
+                pdf.setFont('helvetica', 'normal');
+                const kpiList = [
+                    `Production Rate: ${kpis.production || 'N/A'}`,
+                    `Order Fulfillment: ${kpis.fulfillment || 'N/A'}`,
+                    `Quality Score: ${kpis.quality || 'N/A'}`,
+                    `Revenue: ${kpis.revenue || 'N/A'}`,
+                    `Inventory Turns: ${kpis.inventory || 'N/A'}`,
+                    `Labor Efficiency: ${kpis.labor || 'N/A'}`
+                ];
 
-                        // Regular text
-                        pdf.setFont('helvetica', 'normal');
-                        pdf.setFontSize(9);
-                        pdf.setTextColor(45, 55, 72);
-                        const wrapped = pdf.splitTextToSize(trimmed, contentWidth);
-                        pdf.text(wrapped, margin, yPos);
-                        yPos += wrapped.length * lineHeight;
-                    }
-                }
+                kpiList.forEach(kpi => {
+                    pdf.text(kpi, 25, yPos);
+                    yPos += lineHeight;
+                });
 
-                // Footer on last page
-                pdf.setTextColor(150, 150, 150);
-                pdf.setFontSize(7);
-                pdf.text('CONFIDENTIAL - For Executive Use Only', margin, 275);
-                pdf.text('SHELDON Executive Intelligence System', pageWidth - margin - 55, 275);
+                yPos += lineHeight;
 
+                // Category Summaries
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Category Overview', 20, yPos);
+                yPos += lineHeight * 1.5;
+
+                pdf.setFont('helvetica', 'normal');
+                const categories = [
+                    { name: 'Financial', values: ['Gross Margin: ' + (document.getElementById('finGrossMargin')?.textContent || 'N/A'),
+                                                   'Cash Position: ' + (document.getElementById('finCashPosition')?.textContent || 'N/A'),
+                                                   'AR Days: ' + (document.getElementById('finARDays')?.textContent || 'N/A')] },
+                    { name: 'Operations', values: ['OEE: ' + (document.getElementById('opsOEE')?.textContent || 'N/A'),
+                                                    'Lines Active: ' + (document.getElementById('opsLines')?.textContent || 'N/A'),
+                                                    'Downtime: ' + (document.getElementById('opsDowntime')?.textContent || 'N/A')] },
+                    { name: 'Inventory', values: ['Total Value: ' + (document.getElementById('invTotalValue')?.textContent || 'N/A'),
+                                                   'Finished Goods: ' + (document.getElementById('invFinishedGoods')?.textContent || 'N/A'),
+                                                   'Days on Hand: ' + (document.getElementById('invDaysOnHand')?.textContent || 'N/A')] }
+                ];
+
+                categories.forEach(cat => {
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setTextColor(0, 212, 255);
+                    pdf.text(cat.name, 25, yPos);
+                    yPos += lineHeight;
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setTextColor(255, 255, 255);
+                    cat.values.forEach(val => {
+                        pdf.text('  ' + val, 25, yPos);
+                        yPos += lineHeight;
+                    });
+                    yPos += lineHeight / 2;
+                });
+
+                // Footer
+                pdf.setTextColor(100, 100, 100);
+                pdf.setFontSize(8);
+                pdf.text('CONFIDENTIAL - For Executive Use Only', 20, 270);
+                pdf.text('SHELDON Executive Intelligence System', 150, 270);
+
+                // Save the PDF
                 const filename = `SHELDON_Briefing_${now.toISOString().split('T')[0]}.pdf`;
                 pdf.save(filename);
 
                 hideLoading();
-                addSheldonMessage(`Executive briefing exported as ${filename}`);
+                addSheldonMessage(`Executive briefing exported successfully as ${filename}`);
                 speak('PDF export complete. Check your downloads folder.');
             } catch (error) {
                 console.error('PDF export error:', error);
@@ -7120,7 +6599,7 @@
             try {
                 const dashboard = document.getElementById('dashboard');
                 const canvas = await html2canvas(dashboard, {
-                    backgroundColor: '#ffffff',
+                    backgroundColor: '#030508',
                     scale: 2,
                     logging: false,
                     useCORS: true
@@ -7556,7 +7035,7 @@
 
                 html += `
                     <div style="text-align: center; padding: 4px; font-size: 11px;
-                                ${isToday ? 'background: var(--accent-blue); color: #ffffff; border-radius: 50%;' : ''}
+                                ${isToday ? 'background: var(--accent-blue); color: var(--primary-dark); border-radius: 50%;' : ''}
                                 ${hasEvents ? 'font-weight: 600; color: var(--accent-green);' : 'color: var(--text-secondary);'}
                                 cursor: pointer;"
                          onclick="calendarCurrentDate = new Date(${year}, ${month}, ${day}); setCalendarView('day');">
@@ -7839,70 +7318,7 @@
         // ============================================
         // KEYBOARD SHORTCUTS
         // ============================================
-        // ============================================
-        // FULLSCREEN SHELDON CHAT
-        // ============================================
-        let _sheldonChatOriginalParent = null;
-        let _sheldonChatOriginalNextSibling = null;
-
-        function openSheldonChat() {
-            const aiInterface = document.querySelector('.ai-interface');
-            const container = document.querySelector('.sheldon-fullscreen-container');
-            const backdrop = document.getElementById('sheldonFullscreen');
-
-            // Remember original position so we can put it back
-            _sheldonChatOriginalParent = aiInterface.parentElement;
-            _sheldonChatOriginalNextSibling = aiInterface.nextElementSibling;
-
-            // Move into fullscreen container
-            container.appendChild(aiInterface);
-            aiInterface.classList.remove('collapsed');
-
-            // Show the modal
-            backdrop.classList.add('active');
-
-            // Focus the input
-            setTimeout(() => {
-                const input = document.getElementById('aiInput');
-                if (input) input.focus();
-                // Scroll to bottom of messages
-                const msgs = document.getElementById('aiMessages');
-                if (msgs) msgs.scrollTop = msgs.scrollHeight;
-            }, 100);
-        }
-
-        function closeSheldonChat() {
-            const aiInterface = document.querySelector('.ai-interface');
-            const backdrop = document.getElementById('sheldonFullscreen');
-
-            // Move ai-interface back to its original DOM position
-            if (_sheldonChatOriginalParent) {
-                if (_sheldonChatOriginalNextSibling) {
-                    _sheldonChatOriginalParent.insertBefore(aiInterface, _sheldonChatOriginalNextSibling);
-                } else {
-                    _sheldonChatOriginalParent.appendChild(aiInterface);
-                }
-            }
-
-            backdrop.classList.remove('active');
-            _sheldonChatOriginalParent = null;
-            _sheldonChatOriginalNextSibling = null;
-        }
-
         document.addEventListener('keydown', (e) => {
-            // Escape to close fullscreen chat (takes priority)
-            if (e.key === 'Escape') {
-                const backdrop = document.getElementById('sheldonFullscreen');
-                if (backdrop && backdrop.classList.contains('active')) {
-                    e.preventDefault();
-                    closeSheldonChat();
-                    return;
-                }
-                if (isSpeaking) {
-                    speechSynthesis.cancel();
-                }
-            }
-
             // Enter to send message
             if (e.key === 'Enter' && !e.shiftKey && document.activeElement.id === 'aiInput') {
                 e.preventDefault();
@@ -7914,15 +7330,12 @@
                 e.preventDefault();
                 toggleVoiceInput();
             }
+
+            // Escape to stop speaking
+            if (e.key === 'Escape' && isSpeaking) {
+                speechSynthesis.cancel();
+            }
         });
     </script>
-
-    <!-- Fullscreen SHELDON Chat Modal -->
-    <div class="sheldon-fullscreen-backdrop" id="sheldonFullscreen" onclick="if(event.target===this)closeSheldonChat()">
-        <div class="sheldon-fullscreen-container">
-            <button class="sheldon-fullscreen-close" onclick="closeSheldonChat()" title="Close fullscreen chat">&times;</button>
-            <!-- ai-interface gets moved here when opened -->
-        </div>
-    </div>
 </body>
 </html>

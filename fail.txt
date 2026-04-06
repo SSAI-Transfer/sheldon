@@ -1,0 +1,23 @@
+======================================================================
+  SHELDON KPI Table Discovery
+  2026-03-10 10:18:01
+======================================================================
+
+  ODBC Drivers: ['SQL Server', 'ODBC Driver 17 for SQL Server']
+
+======================================================================
+  CI on AQFDB6
+  Server: AQFDB6  Database: CI
+======================================================================
+  CONNECTION FAILED: ('28000', '[28000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Login failed for user \'SocialScaleReadOnly\'. (18456) (SQLDriverConnect); [28000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot open database "CI" requested by the login. The login failed. (4060); [28000] [Microsoft][ODBC Driver 17 for SQL Server]Invalid connection string attribute (0); [28000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Login failed for user \'SocialScaleReadOnly\'. (18456); [28000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot open database "CI" requested by the login. The login failed. (4060); [28000] [Microsoft][ODBC Driver 17 for SQL Server]Invalid connection string attribute (0)')
+
+======================================================================
+  MANUFACTURING on AQFDB6
+  Server: AQFDB6  Database: MANUFACTURING
+======================================================================
+  CONNECTION FAILED: ('28000', '[28000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Login failed for user \'SocialScaleReadOnly\'. (18456) (SQLDriverConnect); [28000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot open database "MANUFACTURING" requested by the login. The login failed. (4060); [28000] [Microsoft][ODBC Driver 17 for SQL Server]Invalid connection string attribute (0); [28000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Login failed for user \'SocialScaleReadOnly\'. (18456); [28000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot open database "MANUFACTURING" requested by the login. The login failed. (4060); [28000] [Microsoft][ODBC Driver 17 for SQL Server]Invalid connection string attribute (0)')
+
+======================================================================
+  AMMS on AQFAM1
+  Server: AQFAM1  Database: AMMS
+======================================================================

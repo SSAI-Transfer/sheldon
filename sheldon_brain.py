@@ -370,6 +370,11 @@ SHELDON_TOOLS = [
         "input_schema": {"type": "object", "properties": {}}
     },
     {
+        "name": "get_inventory_alerts",
+        "description": "Get inventory threshold alerts: finished goods items with less than 7 days supply (based on 30-day shipment rate), items on quality hold (Q/QH status), and items expiring within 60 days. Use when asked about inventory risks, low stock, supply concerns, or what needs attention in the warehouse.",
+        "input_schema": {"type": "object", "properties": {}}
+    },
+    {
         "name": "get_top_customers",
         "description": "Get top 10 customers by revenue for the most recent month. Returns customer code, name, and total revenue.",
         "input_schema": {"type": "object", "properties": {}}
@@ -377,6 +382,63 @@ SHELDON_TOOLS = [
     {
         "name": "get_ebitda",
         "description": "Get EBITDA estimate: Revenue, COGS, Operating Expenses, Depreciation, Amortization, and Interest from the GL balance sheet.",
+        "input_schema": {"type": "object", "properties": {}}
+    },
+
+    # --- Money Tools: Orders, Margins, Credits, AP, Procurement (Sage X3) ---
+    {
+        "name": "get_open_orders",
+        "description": (
+            "Get open/unfulfilled sales order backlog from Sage X3. Returns two datasets: "
+            "(1) Summary by customer — total backlog value, overdue orders and their value, due this week, due next 30 days. "
+            "(2) Individual open orders — order number, customer, dates, amounts, delivery status. "
+            "Use this to answer: What revenue is in the pipeline? What's at risk of being late? Which customers have the biggest open orders? "
+            "CRITICAL for connecting production capacity (S&OP) to actual revenue commitments."
+        ),
+        "input_schema": {"type": "object", "properties": {}}
+    },
+    {
+        "name": "get_margin_analysis",
+        "description": (
+            "Get gross margin breakdown by customer AND by product from Sage X3 (last 3 months). "
+            "Returns: (1) Top 20 customers ranked by revenue with margin %, gross profit, COGS. "
+            "(2) Top 30 products ranked by revenue with margin %, quantity sold, gross profit. "
+            "Use this to answer: Which customers are most/least profitable? Which products make us the most money? "
+            "Where should we focus production? What should we renegotiate?"
+        ),
+        "input_schema": {"type": "object", "properties": {}}
+    },
+    {
+        "name": "get_customer_credits",
+        "description": (
+            "Get customer credit memo (returns/chargebacks) data from Sage X3. "
+            "Returns: (1) Summary — total credits MTD, YTD, and trailing 12 months. "
+            "(2) Credits by customer — who's getting the most credits, counts, amounts, date range. "
+            "Credits are REVENUE LEAKAGE — money that came in and went right back out. "
+            "Use to identify quality issues, short ships, late deliveries, or customer disputes costing real dollars."
+        ),
+        "input_schema": {"type": "object", "properties": {}}
+    },
+    {
+        "name": "get_ap_snapshot",
+        "description": (
+            "Get accounts payable overview from Sage X3. "
+            "Returns: (1) AP aging buckets — not yet due, 1-30 past due, 31-60, 61-90, 90+. "
+            "(2) Top 15 vendors by spend with past-due amounts. "
+            "Use with AR aging to build the full cash flow picture: AR is money owed TO us, AP is money WE owe. "
+            "Cash flow = AR collections - AP payments. Critical for 'can we make payroll' and 'should we take early-pay discounts' decisions."
+        ),
+        "input_schema": {"type": "object", "properties": {}}
+    },
+    {
+        "name": "get_open_purchase_orders",
+        "description": (
+            "Get open purchase order pipeline from Sage X3. "
+            "Returns: (1) Summary — total open PO value, late POs (past expected receipt), due this week, due next 30 days. "
+            "(2) Individual open POs — vendor, dates, amounts, late flag. "
+            "Use to identify: materials at risk of being late (which blocks production lines → missed S&OP), "
+            "total procurement spend in pipeline, vendor reliability issues."
+        ),
         "input_schema": {"type": "object", "properties": {}}
     },
 
@@ -474,6 +536,33 @@ SHELDON_TOOLS = [
         ),
         "input_schema": {"type": "object", "properties": {}}
     },
+
+    # --- Retort Operations (Digital Forms) ---
+    {
+        "name": "get_retort_operations",
+        "description": (
+            "Get retort floor operations data from the digital cage tag and process report system. "
+            "Returns: today's cage tag counts by stage (Kitchen/Retort/Packside/Completed), "
+            "cart loading times by product and retort, shift performance comparison, "
+            "retort utilization patterns, detected inefficiencies (slow loads, retort imbalance, shift imbalance), "
+            "process report deviations, and daily throughput trends. "
+            "Use this tool for questions about: retort floor efficiency, cart loading speed, "
+            "which retorts are over/underutilized, shift-to-shift performance gaps, "
+            "cook time patterns, product throughput, or any retort operations optimization question. "
+            "Data comes from iPad digital forms filled by floor operators (replaces paper cage tags). "
+            "Covers the Kitchen→Retort→Packside workflow."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "days": {
+                    "type": "integer",
+                    "description": "Number of days to analyze (default 7). Use 1 for today only, 30 for monthly trend.",
+                    "default": 7
+                }
+            }
+        }
+    },
 ]
 
 
@@ -521,11 +610,17 @@ You have real-time tool access to:
 1. **S&OP Plan** — Demand vs capacity by line, days under/over, retort constraints, 6-month outlook (get_sop_status)
 2. **Snowflake/Redzone** — Production OEE, output, downtime, labor, defects (MES data)
 3. **Sage X3 ERP** — Revenue, gross margin, cash position, AR aging, inventory, customers
-4. **Donna QA System** — Batch release pipeline, preshipment checks, fire drills, compliance risk
-5. **Jackie Analytics** — Deep defect analysis, sensor health, machine recipes, alarm history (via ask_jackie)
-6. **Microsoft Graph** — Executive calendar and scheduling
-7. **Cross-system health scoring** — Composite business health (0-100)
-8. **Departmental KPI Database (CONFIRMED SCHEMAS)**:
+4. **Sales Order Backlog** — Open/unfulfilled orders by customer, overdue orders, revenue in pipeline (get_open_orders)
+5. **Customer & Product Margins** — Gross margin % by customer and by product, ranked by revenue (get_margin_analysis)
+6. **Customer Credits** — Credit memos/returns/chargebacks — revenue leakage by customer (get_customer_credits)
+7. **Accounts Payable** — AP aging, top vendors by spend, past-due amounts — the other side of cash flow (get_ap_snapshot)
+8. **Purchase Order Pipeline** — Open POs, late deliveries from vendors, materials at risk (get_open_purchase_orders)
+9. **Donna QA System** — Batch release pipeline, preshipment checks, fire drills, compliance risk
+10. **Jackie Analytics** — Deep defect analysis, sensor health, machine recipes, alarm history (via ask_jackie)
+11. **Microsoft Graph** — Executive calendar and scheduling
+12. **Cross-system health scoring** — Composite business health (0-100)
+13. **Retort Floor Operations** — Digital cage tag data from iPad entry: cart loading times, retort utilization, shift comparison, stage flow (Kitchen→Retort→Packside), inefficiency detection, process report deviations (get_retort_operations)
+14. **Departmental KPI Database (CONFIRMED SCHEMAS)**:
    - CI database (AQFDB6): KPIDashData (17K rows), KPITargets (459 targets), KPI_SCHED_targetVSactual (19K rows), KPI_QA_OverallQuality_Contract, KPI_QA_CalcWeekly (FTQ), KPI_QA_ForeignMatter (CAL=10/mo), KPI_QA_OverdueReleases (48K rows with QttlCost), KPI_WH_TransactionCounts, KPI_WH_ShipVsCustReq, KPI_WH_CycleCount, KPI_WH_Capacity (FRZ/ECS), KPI_PROC_Inventory (RAW/PKG/TRI/FG/PPHM), KPI_CostByAccount (GL codes), KPI_MFG_ScheduleChangeLog, SAFETYIncidentDatabase
    - MANUFACTURING database (AQFDB6): PROD.eopShiftNotes (11K rows — Attainment, OnTimeStart, humanError)
    - AMMS database (AQFAM1\\AMMS): view_kpi_glcost, view_kpi_repaircost
@@ -552,7 +647,138 @@ You have real-time tool access to:
 - **Key customers:** DSCP (Defense Supply Center Philadelphia), Starkist, Campbell's, Beech-Nut, Scott Pet
 - **Retort system:** 42 pressure cookers — the production bottleneck, 2-hour USDA compliance rule
 - **Quality pipeline:** 18 preshipment checks per batch. Batches have due dates based on lead time
-- **Key people:** Alex Nelson (KPI data), Kelsie Phelps (HR/weekly sync), Robin Altmeyer (QA lead), Glenn Knake (retort), Nick Harnishfeger (IT/DB), Tyler Luderbach (S&OP owner)
+## Organizational Directory — Who Owns What
+When recommending actions, ALWAYS name the correct person based on this directory.
+Do NOT guess roles — if a responsibility isn't listed here, say "check with Dennis on who owns that."
+
+### Executive Leadership
+| Person | Title | Email | Owns | Go to them for |
+|--------|-------|-------|------|----------------|
+| Dennis Straub | President | dstraub@ameriqual.com | Final authority on all decisions | Strategic direction, customer relationships, P&L decisions |
+| Dan Bittner | EVP Operations | dbittner@ameriqual.com | Overall operations oversight | Cross-plant operational decisions, executive escalations |
+| Wes Blankenberger | EVP Operations | wblankenberger@ameriqual.com | Operations execution | Plant-wide operational issues, production priorities |
+| John Knapp | Executive VP Marketing | jknapp@ameriqual.com | Marketing strategy | Brand, marketing, market positioning |
+| Tim Sholtis | CFO | tsholtis@ameriqual.com | Financial reporting, budgets, cash, P&L | Margin analysis, cost questions, AP/AR escalations, capital decisions |
+| Kiersten Roberts | Controller | kroberts@ameriqual.com | Accounting, financial controls | GL questions, cost accounting, financial close |
+| Christine Williams | Director of FP&A | cwilliams@ameriqual.com | Financial planning & analysis | Forecasting, budgets, variance analysis |
+
+### Production & Operations
+| Person | Title | Email | Owns | Go to them for |
+|--------|-------|-------|------|----------------|
+| Logan Rudolph | VP of Operations & Engineering | lrudolph@ameriqual.com | Operations and engineering strategy | High-level production and engineering decisions |
+| Jeff Leystra | Director of Operations | jleystra@ameriqual.com | Day-to-day operations direction | Operational priorities, cross-line coordination |
+| Jim O'Risky | VP of Commercial Value Stream | jorisky@ameriqual.com | Commercial production value stream | Commercial line priorities, value stream decisions |
+| Greg White | Sr. Production Manager, Institutional | gwhite@ameriqual.com | Institutional/MRE production | MRE line scheduling, institutional customer production |
+| Adam Herrmann | Production Manager | aherrmann@ameriqual.com | Production schedule execution | Line staffing, shift changes, overtime decisions |
+| Chris Wilkerson | Production Manager | cwilkerson@ameriqual.com | Production schedule execution | Line staffing, shift changes, production issues |
+| Jeff Baresic | Production Manager (2nd shift) | jbaresic@ameriqual.com | 2nd shift production | 2nd shift issues, overnight production |
+| Mallory Ratliff | Production Manager | mratliff@ameriqual.com | Production schedule execution | Line operations, staffing |
+| Mike Debes | Production Manager | mdebes@ameriqual.com | Production schedule execution | Line operations, staffing |
+| Nathan Leistner | Production Manager | nleistner@ameriqual.com | Production schedule execution | Line operations, staffing |
+| Andrew Wargel | Senior Batching Manager | awargel@ameriqual.com | Batching operations | Batching schedules, ingredient prep, formulation issues |
+| Andy Bedwell | Sanitation Manager | abedwell@ameriqual.com | Sanitation (Foods) | Sanitation scheduling, CIP, allergen changeovers |
+| Billy Bedwell | Sanitation Manager | bbedwell@ameriqual.com | Sanitation | Sanitation coordination |
+
+### Retort & Thermal Processing
+| Person | Title | Email | Owns | Go to them for |
+|--------|-------|-------|------|----------------|
+| Brock Papariella | Thermal Processing Director | bpapariella@ameriqual.com | Thermal processing strategy | Retort capacity planning, thermal process authority |
+| Glenn Knake | Retort Maintenance Manager | gknake@ameriqual.com | Retort equipment and maintenance (42 cookers) | Retort scheduling, capacity constraints, equipment issues |
+| Bryant Mortis | Retort Supervisor | bmortis@ameriqual.com | Retort shift operations | Day-to-day retort operations, USDA compliance, crew issues |
+| Chris Hoeflinger | Retort Supervisor | choeflinger@ameriqual.com | Retort shift operations | Retort scheduling, operator issues |
+
+### Maintenance & Engineering
+| Person | Title | Email | Owns | Go to them for |
+|--------|-------|-------|------|----------------|
+| Ryan Dallmier | VP of Maintenance & Engineering | rdallmier@ameriqual.com | All maintenance and engineering | Major equipment decisions, capital projects, engineering strategy |
+| Jason Carr | Maintenance/Engineering Director | jcarr@ameriqual.com | Maintenance and engineering execution | Downtime root cause, repair priorities, PM schedules |
+| Kenny Lanham | Facility Maintenance Manager | klanham@ameriqual.com | Facility maintenance | Building systems, utilities, facility issues |
+| Lance Yearby | Maintenance Manager | lyearby@ameriqual.com | Maintenance team operations | Equipment repairs, maintenance crew, work orders |
+| James Hayes | Maintenance Manager | jhayes@ameriqual.com | Maintenance team operations | Equipment repairs, maintenance crew |
+| Rickie Gilliland | Maintenance & Engineering Manager | rgilliland@ameriqual.com | Maintenance and engineering | Equipment and engineering issues |
+| Brian Bittner | Sr. Manager, CapEx and MRO | bbittner@ameriqual.com | Capital expenditures, MRO inventory | Capital projects, spare parts, MRO budget |
+| Mark Luebke | Automation Engineer | mluebke@ameriqual.com | Automation systems | PLC, controls, automation issues |
+
+### Quality & Food Safety
+| Person | Title | Email | Owns | Go to them for |
+|--------|-------|-------|------|----------------|
+| Robin Altmeyer | VP Quality | raltmeyer@ameriqual.com | All quality assurance, batch release, quality strategy | Preshipment holds, quality failures, compliance, customer quality issues |
+| Brandon Johnson | Director of Quality | bjohnson@ameriqual.com | Quality systems direction | Quality program decisions, quality escalations |
+| Alex Curtis | Sr. Quality Assurance Manager | acurtis@ameriqual.com | QA management | Day-to-day QA operations, quality investigations |
+| Nikki Leonard | Quality Assurance Manager | nleonard@ameriqual.com | QA management | QA operations, inspections, batch reviews |
+| Carrie McCollom | Quality Assurance Manager | cmccollom@ameriqual.com | QA management | QA operations, quality checks |
+| Annie Leslie | Director of R&D | aleslie@ameriqual.com | Research & Development | New product development, formulations, food science |
+
+### Continuous Improvement
+| Person | Title | Email | Owns | Go to them for |
+|--------|-------|-------|------|----------------|
+| Alex Nelson | Continuous Improvement Engineer | anelson@ameriqual.com | KPI tracking, labor efficiency metrics, Redzone data, CI projects | KPI data questions, labor utilization analysis, CI initiatives — NOT HR/people decisions |
+| Austin Wulff | Continuous Improvement Engineer | awulff@ameriqual.com | CI projects, process improvement | Process optimization, waste reduction |
+| Logan Hunt | Continuous Improvement Engineer | lhunt@ameriqual.com | CI projects, process improvement | Process optimization, efficiency projects |
+
+### People & HR
+| Person | Title | Email | Owns | Go to them for |
+|--------|-------|-------|------|----------------|
+| Christy Atherton | Human Resources Director | catherton@ameriqual.com | All HR — workforce strategy, hiring, employee relations, policy | Headcount changes, attendance issues, hiring needs, disciplinary matters, HR policy |
+| Mandy Murray | Sr. Talent Acquisition & Development | mmurray@ameriqual.com | Recruiting, talent development | Hiring pipeline, job postings, talent strategy |
+| Kelsie Phelps | Training Coordinator / CI Engineer | kphelps@ameriqual.com | Training programs, CI support | Training schedules, onboarding, skills development |
+| Josh Bryant | Technical Training Manager | jbryant@ameriqual.com | Technical training programs | Operator certification, technical skills, cross-training plans |
+| Teri Peak | HR Business Partner | tpeak@ameriqual.com | HR business partnership | Department-level HR support, employee issues |
+
+### Supply Chain, Logistics & Warehouse
+| Person | Title | Email | Owns | Go to them for |
+|--------|-------|-------|------|----------------|
+| Tyler Lutterbach | VP Supply Chain | tlutterbach@ameriqual.com | Demand planning, supply chain strategy, S&OP | S&OP updates, demand changes, customer volume shifts, supply chain decisions |
+| Robbie Trame | Director of Logistics | rtrame@ameriqual.com | Logistics strategy, shipping/receiving | Freight issues, logistics planning, carrier problems |
+| Mike Spaetti | Warehouse Manager | mspaetti@ameriqual.com | Warehouse operations (Foods) | Storage capacity, cycle counts, FG movement, inventory |
+| Jacklyn Kissel | Packaging Warehouse Manager | jkissel@ameriqual.com | Packaging warehouse | Packaging materials, packaging warehouse operations |
+| Baily Parker | Transportation Manager | bparker@ameriqual.com | Transportation, fleet | Trucking, delivery scheduling, carrier management |
+
+### Procurement & Purchasing
+| Person | Title | Email | Owns | Go to them for |
+|--------|-------|-------|------|----------------|
+| Matt Tucker | Senior Buyer | mtucker@ameriqual.com | Procurement | Raw material purchasing, vendor negotiations |
+| Hannah Pace | Senior Buyer | hpace@ameriqual.com | Purchasing | Purchase orders, material sourcing |
+| Courtney Pohl | Senior Buyer | cpohl@ameriqual.com | Purchasing | Purchase orders, vendor management |
+
+### IT & Systems
+| Person | Title | Email | Owns | Go to them for |
+|--------|-------|-------|------|----------------|
+| Jeff Goodrich | Director of IT | jgoodrich@ameriqual.com | IT strategy, infrastructure | IT decisions, system architecture, major IT projects |
+| Dan Nelson | IT Manager | dnelson@ameriqual.com | IT operations | Day-to-day IT, network, system issues |
+| Nic Harnishfeger | Senior IT Business Analyst | nharnishfeger@ameriqual.com | Business systems, databases, data | System access, DB queries, data integrations, reporting |
+| Ayden M. Noyes | IT Analyst | amnoyes@ameriqual.com | IT analysis, server deployments | Deploying tools, firewall/port access, service accounts |
+
+### Sales & Business Development
+| Person | Title | Email | Owns | Go to them for |
+|--------|-------|-------|------|----------------|
+| Jonathan Rietman | VP of Sales | jrietman@ameriqual.com | Sales strategy, key accounts | Sales decisions, major account issues, revenue targets |
+| Kristal Sevcik | VP Business Development | ksevcik@ameriqual.com | New business, partnerships | New customer opportunities, business development strategy |
+| Darren Verkamp | Sr. Director of Business Development | dverkamp@ameriqual.com | Business development | New contracts, market expansion |
+| Craig Knapp | Sr. Manager of Sales | cknapp@ameriqual.com | Sales management | Day-to-day sales operations, order issues |
+| Maria Schweizer | Business Development Manager | mschweizer@ameriqual.com | Business development | New business leads, partnership opportunities |
+| Krista Berfanger | Account Manager | kberfanger@ameriqual.com | Customer accounts | Order changes, delivery commitments, customer communication |
+| Jackson Bard | Foods Territory Sales Rep | jbard@ameriqual.com | Foods territory sales | Territory-specific sales, customer visits |
+
+### Safety
+| Person | Title | Email | Owns | Go to them for |
+|--------|-------|-------|------|----------------|
+| Kimbra Parker | Safety Manager | kparker@ameriqual.com | Safety programs, OSHA compliance, incident tracking | Incident response, safety audits, PPE, training compliance |
+| Steve Smith | Safety Manager | swsmith@ameriqual.com | Safety programs, OSHA compliance, incident tracking | Incident response, safety investigations, safety training |
+
+**CRITICAL ROUTING RULES:**
+- **People/workforce decisions** → Christy Atherton (HR Director) + the relevant department manager. NOT Alex Nelson.
+- Alex Nelson handles KPI DATA and CI projects ONLY — he is NOT the person for hiring, firing, attendance, or people decisions.
+- **Production changes** → relevant Production Manager + Tyler Lutterbach (S&OP impact)
+- **Financial actions** → Tim Sholtis (CFO) or Kiersten Roberts (Controller) + Dennis
+- **Quality holds or releases** → Robin Altmeyer (VP Quality)
+- **Retort/thermal actions** → Brock Papariella (strategy) or Glenn Knake (equipment) or Bryant Mortis (operations)
+- **Maintenance/downtime** → Jason Carr (director) or Ryan Dallmier (VP) depending on severity
+- **Supply chain/materials** → Tyler Lutterbach (VP Supply Chain) for strategy, Matt Tucker/Hannah Pace for purchasing
+- **Safety incidents** → Kimbra Parker or Steve Smith (Safety Managers)
+- **IT/systems** → Jeff Goodrich (director) for strategy, Dan Nelson (manager) for operations
+- **Sales/customer issues** → Jonathan Rietman (VP Sales)
+- If you don't know who owns something, say so — don't guess
 
 ## Data Quality Rules
 - OEE >100% from Redzone = configuration error, NOT actual performance exceeding targets
@@ -569,6 +795,16 @@ When Dennis asks for a recommendation:
 3. **RISK** — What happens if we do nothing? When does it become a crisis?
 4. **ACTION** — Exactly what needs to happen, who does it, by when?
 5. **TRADEOFF** — What do we give up? Every decision has a cost.
+
+## Money Move Playbook
+When Dennis asks about making money, growing revenue, cutting costs, or getting the company on track:
+1. **Start with S&OP** (get_sop_status) — What's the plan? Where are we constrained vs slack?
+2. **Check the backlog** (get_open_orders) — What revenue is committed? What's overdue/at risk?
+3. **Know the margins** (get_margin_analysis) — Which customers and products actually make money?
+4. **Find the leaks** (get_customer_credits) — Where is revenue walking back out the door?
+5. **Cash flow picture** (get_ap_snapshot + get_financial_snapshot) — AR coming in vs AP going out. Can we make payroll? Should we accelerate collections?
+6. **Supply chain risk** (get_open_purchase_orders) — Are late materials about to shut down lines?
+7. **Connect production to money** — Low OEE on a constrained line with $2M in open orders = URGENT. Low OEE on a slack line with no backlog = meh.
 
 ## Response Guidelines
 - For "how are we doing" / "what should I know" — ALWAYS start with get_sop_status, then layer on OEE, financial, quality, and department data. Synthesize into "here's what makes or loses you money today"
@@ -680,7 +916,10 @@ class SheldonBrain:
     def process_message_stream(self, user_message: str, dashboard_context: dict = None):
         """Process a user message through the Claude agent loop with streaming.
         Yields SSE-formatted events: text chunks, tool status updates, and final metadata.
+        Sends heartbeat comments every few seconds to keep the connection alive.
         """
+        import threading, time as _time
+
         system = build_system_prompt()
 
         if dashboard_context:
@@ -694,15 +933,33 @@ class SheldonBrain:
         tools_used = []
         data_sources = set()
 
-        for turn in range(self.max_turns):
-            # Check if this turn might need tools — use streaming only on potential final turn
-            # For tool-use turns, we need the full response to execute tools
-            response = self._call_claude(system, messages)
+        def _wait_with_heartbeats(thread):
+            """Wait for a thread to finish, yielding SSE heartbeat comments every 3s."""
+            while thread.is_alive():
+                thread.join(timeout=3)
+                if thread.is_alive():
+                    yield f": heartbeat\n\n"
 
-            if response is None:
+        for turn in range(self.max_turns):
+            # Run _call_claude in a thread, send heartbeats while waiting
+            claude_result = [None]
+            claude_error = [None]
+
+            def _call_claude_thread():
+                try:
+                    claude_result[0] = self._call_claude(system, messages)
+                except Exception as e:
+                    claude_error[0] = e
+
+            t = threading.Thread(target=_call_claude_thread, daemon=True)
+            t.start()
+            yield from _wait_with_heartbeats(t)
+
+            if claude_error[0] or claude_result[0] is None:
                 yield f"data: {json.dumps({'type': 'error', 'text': 'Connection issue with AI engine. Please try again.'})}\n\n"
                 return
 
+            response = claude_result[0]
             stop_reason = response.get("stop_reason", "end_turn")
             content = response.get("content", [])
 
@@ -717,7 +974,17 @@ class SheldonBrain:
                         # Send tool status to frontend
                         yield f"data: {json.dumps({'type': 'tool', 'tool': tool_name})}\n\n"
 
-                        result = self._execute_tool(tool_name, tool_input)
+                        # Run tool in thread with heartbeats
+                        tool_result_box = [None]
+
+                        def _tool_thread(tn=tool_name, ti=tool_input):
+                            tool_result_box[0] = self._execute_tool(tn, ti)
+
+                        tt = threading.Thread(target=_tool_thread, daemon=True)
+                        tt.start()
+                        yield from _wait_with_heartbeats(tt)
+
+                        result = tool_result_box[0] or {"error": "Tool timeout", "source": "sheldon"}
                         data_sources.add(result.get("source", "unknown"))
 
                         tool_results.append({
@@ -873,14 +1140,21 @@ class SheldonBrain:
             "get_shift_comparison": self._tool_shift_comparison,
             "get_financial_snapshot": self._tool_financial_snapshot,
             "get_inventory_status": self._tool_inventory,
+            "get_inventory_alerts": self._tool_inventory_alerts,
             "get_top_customers": self._tool_top_customers,
             "get_ebitda": self._tool_ebitda,
+            "get_open_orders": self._tool_open_orders,
+            "get_margin_analysis": self._tool_margin_analysis,
+            "get_customer_credits": self._tool_customer_credits,
+            "get_ap_snapshot": self._tool_ap_snapshot,
+            "get_open_purchase_orders": self._tool_open_purchase_orders,
             "get_quality_pipeline": self._tool_quality_pipeline,
             "get_executive_calendar": self._tool_calendar,
             "get_business_health": self._tool_health_score,
             "ask_jackie": lambda: self._tool_ask_jackie(params),
             "get_departmental_kpis": lambda: self._tool_departmental_kpis(params),
             "get_sop_status": self._tool_sop_status,
+            "get_retort_operations": lambda: self._tool_retort_operations(params),
         }
 
         handler = handlers.get(tool_name)
@@ -896,32 +1170,35 @@ class SheldonBrain:
     # Operations Tools (Snowflake/Redzone)
     # =========================================================================
 
+    # Chat tool calls use a 30s timeout so the user isn't left waiting 2+ min
+    CHAT_TOOL_TIMEOUT = 30
+
     def _tool_plant_oee(self):
-        data = self.snowflake.query(self.snowflake_queries['plant_oee'])
+        data = self.snowflake.query(self.snowflake_queries['plant_oee'], timeout=self.CHAT_TOOL_TIMEOUT)
         return {"data": data, "source": "snowflake_redzone"}
 
     def _tool_oee_by_line(self):
-        data = self.snowflake.query(self.snowflake_queries['oee_by_line'])
+        data = self.snowflake.query(self.snowflake_queries['oee_by_line'], timeout=self.CHAT_TOOL_TIMEOUT)
         return {"data": data, "source": "snowflake_redzone"}
 
     def _tool_red_flags(self):
-        data = self.snowflake.query(self.snowflake_queries['lines_below_target'])
+        data = self.snowflake.query(self.snowflake_queries['lines_below_target'], timeout=self.CHAT_TOOL_TIMEOUT)
         return {"data": data, "source": "snowflake_redzone"}
 
     def _tool_top_downtime(self):
-        data = self.snowflake.query(self.snowflake_queries['top_downtime'])
+        data = self.snowflake.query(self.snowflake_queries['top_downtime'], timeout=self.CHAT_TOOL_TIMEOUT)
         return {"data": data, "source": "snowflake_redzone"}
 
     def _tool_labor_productivity(self):
-        data = self.snowflake.query(self.snowflake_queries['labor_productivity'])
+        data = self.snowflake.query(self.snowflake_queries['labor_productivity'], timeout=self.CHAT_TOOL_TIMEOUT)
         return {"data": data, "source": "snowflake_redzone"}
 
     def _tool_oee_trend(self):
-        data = self.snowflake.query(self.snowflake_queries['hourly_trend'])
+        data = self.snowflake.query(self.snowflake_queries['hourly_trend'], timeout=self.CHAT_TOOL_TIMEOUT)
         return {"data": data, "source": "snowflake_redzone"}
 
     def _tool_active_lines(self):
-        data = self.snowflake.query(self.snowflake_queries['active_lines'])
+        data = self.snowflake.query(self.snowflake_queries['active_lines'], timeout=self.CHAT_TOOL_TIMEOUT)
         return {"data": data, "source": "snowflake_redzone"}
 
     # =========================================================================
@@ -953,7 +1230,7 @@ class SheldonBrain:
             GROUP BY "placeName"
             ORDER BY defect_count DESC
         """
-        data = self.snowflake.query(query)
+        data = self.snowflake.query(query, timeout=self.CHAT_TOOL_TIMEOUT)
         return {"data": data, "source": "snowflake_redzone", "date_range": date_range, "julian_dates": julians}
 
     def _tool_defect_types(self, params):
@@ -984,7 +1261,7 @@ class SheldonBrain:
             ORDER BY total_count DESC
             LIMIT 20
         """
-        data = self.snowflake.query(query)
+        data = self.snowflake.query(query, timeout=self.CHAT_TOOL_TIMEOUT)
         return {"data": data, "source": "snowflake_redzone", "date_range": date_range}
 
     def _tool_shift_comparison(self):
@@ -999,7 +1276,7 @@ class SheldonBrain:
             GROUP BY "shiftName"
             ORDER BY "shiftName"
         """
-        data = self.snowflake.query(query)
+        data = self.snowflake.query(query, timeout=self.CHAT_TOOL_TIMEOUT)
         return {"data": data, "source": "snowflake_redzone"}
 
     # =========================================================================
@@ -1048,6 +1325,63 @@ class SheldonBrain:
                 results[f"{key}_error"] = str(e)[:200]
         return {"data": results, "source": "sage_x3"}
 
+    def _tool_inventory_alerts(self):
+        """Get inventory threshold alerts — low stock FG, quality holds, expiring items."""
+        threshold_days = 7
+        result = {'thresholdDays': threshold_days, 'alerts': [], 'qualityHolds': [], 'expiring': []}
+
+        # FG stock vs 30-day consumption
+        try:
+            stock = self.sage.query(self.sql_queries.get('fg_stock_by_item', ''))
+            consumption = self.sage.query(self.sql_queries.get('fg_consumption_30d', ''))
+            usage_map = {}
+            for row in consumption:
+                sku = row.get('SKU', '')
+                daily = float(row.get('AvgDailyUsage', 0))
+                if sku and daily > 0:
+                    usage_map[sku] = usage_map.get(sku, 0) + daily
+
+            alerts = []
+            for row in stock:
+                sku = row.get('SKU', '')
+                on_hand = float(row.get('OnHand', 0))
+                daily_usage = usage_map.get(sku, 0)
+                if daily_usage > 0:
+                    days = round(on_hand / daily_usage, 1)
+                    if days <= threshold_days:
+                        alerts.append({
+                            'sku': sku, 'description': row.get('Description', ''),
+                            'facility': row.get('Facility', ''), 'onHand': on_hand,
+                            'daysSupply': days, 'avgDailyUsage': round(daily_usage, 1),
+                            'status': 'CRITICAL' if days <= 3 else 'LOW',
+                        })
+            alerts.sort(key=lambda x: x['daysSupply'])
+            result['alerts'] = alerts[:30]
+            result['belowThreshold'] = len(alerts)
+        except Exception as e:
+            result['stockError'] = str(e)[:200]
+
+        # Quality holds
+        try:
+            holds = self.sage.query(self.sql_queries.get('inventory_quality_holds', ''))
+            result['qualityHolds'] = holds[:20]
+            result['qualityHoldCount'] = len(holds)
+        except Exception as e:
+            result['holdsError'] = str(e)[:200]
+
+        # Expiring items from CI database
+        try:
+            if hasattr(self, 'internal_db') and self.internal_db:
+                query_def = self.dept_kpi_queries.get('proc_inventory_expiring')
+                if query_def and query_def.get('sql'):
+                    exp = self.internal_db.query(query_def['sql'], database=query_def['database'])
+                    result['expiring'] = exp[:20]
+                    result['expiringCount'] = len(exp)
+        except Exception as e:
+            result['expiringError'] = str(e)[:200]
+
+        return {"data": result, "source": "sage_x3+ci"}
+
     def _tool_top_customers(self):
         try:
             data = self.sage.query(self.sql_queries.get('top_customers', ''))
@@ -1061,6 +1395,109 @@ class SheldonBrain:
             return {"data": data, "source": "sage_x3"}
         except Exception as e:
             return {"error": str(e)[:200], "source": "sage_x3"}
+
+    # =========================================================================
+    # Money Tools: Orders, Margins, Credits, AP, Procurement (Sage X3)
+    # =========================================================================
+
+    def _tool_open_orders(self):
+        """Get open sales order backlog — summary by customer + individual orders."""
+        results = {}
+        for key in ['order_backlog_summary', 'open_sales_orders']:
+            try:
+                sql = self.sql_queries.get(key, '')
+                if sql:
+                    data = self.sage.query(sql)
+                    results[key] = data
+            except Exception as e:
+                results[f"{key}_error"] = str(e)[:200]
+
+        # Calculate totals from summary
+        try:
+            summary = results.get('order_backlog_summary', [])
+            if summary:
+                results['totals'] = {
+                    'total_open_orders': sum(r.get('OpenOrders', 0) for r in summary),
+                    'total_backlog_value': sum(float(r.get('TotalBacklogValue', 0) or 0) for r in summary),
+                    'total_overdue_orders': sum(r.get('OverdueOrders', 0) for r in summary),
+                    'total_overdue_value': sum(float(r.get('OverdueValue', 0) or 0) for r in summary),
+                    'total_due_this_week': sum(float(r.get('DueThisWeek', 0) or 0) for r in summary),
+                    'total_due_next_30': sum(float(r.get('DueNext30Days', 0) or 0) for r in summary),
+                }
+        except Exception:
+            pass
+
+        return {"data": results, "source": "sage_x3"}
+
+    def _tool_margin_analysis(self):
+        """Get margin breakdown by customer and by product."""
+        results = {}
+        for key in ['margin_by_customer', 'margin_by_product']:
+            try:
+                sql = self.sql_queries.get(key, '')
+                if sql:
+                    data = self.sage.query(sql)
+                    results[key] = data
+            except Exception as e:
+                results[f"{key}_error"] = str(e)[:200]
+        return {"data": results, "source": "sage_x3"}
+
+    def _tool_customer_credits(self):
+        """Get customer credit memos — summary + by customer."""
+        results = {}
+        for key in ['credits_summary', 'customer_credits']:
+            try:
+                sql = self.sql_queries.get(key, '')
+                if sql:
+                    data = self.sage.query(sql)
+                    results[key] = data[0] if data and len(data) == 1 else data
+            except Exception as e:
+                results[f"{key}_error"] = str(e)[:200]
+        return {"data": results, "source": "sage_x3"}
+
+    def _tool_ap_snapshot(self):
+        """Get AP aging + top vendors."""
+        results = {}
+        for key in ['ap_aging', 'ap_top_vendors']:
+            try:
+                sql = self.sql_queries.get(key, '')
+                if sql:
+                    data = self.sage.query(sql)
+                    results[key] = data[0] if key == 'ap_aging' and data and len(data) == 1 else data
+            except Exception as e:
+                results[f"{key}_error"] = str(e)[:200]
+
+        # Calculate AP days from aging
+        try:
+            ap = results.get('ap_aging', {})
+            if isinstance(ap, dict):
+                total_ap = float(ap.get('TotalAP', 0) or 0)
+                if total_ap > 0:
+                    not_due = float(ap.get('NotYetDue', 0) or 0)
+                    d1 = float(ap.get('PastDue1to30', 0) or 0)
+                    d31 = float(ap.get('PastDue31to60', 0) or 0)
+                    d61 = float(ap.get('PastDue61to90', 0) or 0)
+                    d90 = float(ap.get('PastDueOver90', 0) or 0)
+                    results['ap_days'] = round(
+                        ((not_due * -10) + (d1 * 15) + (d31 * 45) + (d61 * 75) + (d90 * 120)) / total_ap, 1
+                    )
+        except Exception:
+            pass
+
+        return {"data": results, "source": "sage_x3"}
+
+    def _tool_open_purchase_orders(self):
+        """Get open PO pipeline — summary + individual POs."""
+        results = {}
+        for key in ['po_summary', 'open_purchase_orders']:
+            try:
+                sql = self.sql_queries.get(key, '')
+                if sql:
+                    data = self.sage.query(sql)
+                    results[key] = data[0] if key == 'po_summary' and data and len(data) == 1 else data
+            except Exception as e:
+                results[f"{key}_error"] = str(e)[:200]
+        return {"data": results, "source": "sage_x3"}
 
     # =========================================================================
     # Quality Pipeline (Donna QA System — HTTP)
@@ -1327,6 +1764,29 @@ class SheldonBrain:
         return SOPReader.read_sop_snapshot()
 
     # =========================================================================
+    # Retort Operations (Digital Forms)
+    # =========================================================================
+
+    RETORT_FORMS_API = "http://localhost:5003"
+
+    def _tool_retort_operations(self, params):
+        """Query the retort digital forms API for operations analytics."""
+        days = params.get("days", 7)
+        url = f"{self.RETORT_FORMS_API}/api/analytics/sheldon-report?days={days}"
+        try:
+            req = urllib.request.Request(url, headers={"Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode())
+            return {"data": data, "source": "retort_forms_digital"}
+        except urllib.error.URLError:
+            return {
+                "error": "Retort Forms server not reachable (port 5003). Digital cage tag data unavailable.",
+                "source": "retort_forms_digital"
+            }
+        except Exception as e:
+            return {"error": str(e)[:300], "source": "retort_forms_digital"}
+
+    # =========================================================================
     # Unified Morning Brief
     # =========================================================================
 
@@ -1396,6 +1856,13 @@ class SheldonBrain:
             sections.append(f"## BUSINESS HEALTH SCORE\n{json.dumps(health, default=str)[:1000]}")
         except Exception as e:
             sections.append(f"## BUSINESS HEALTH\nUnavailable: {e}")
+
+        # Retort operations (digital cage tags)
+        try:
+            retort_ops = self._tool_retort_operations({"days": 7})
+            sections.append(f"## RETORT FLOOR OPERATIONS (Digital Cage Tags)\n{json.dumps(retort_ops, default=str)[:3000]}")
+        except Exception as e:
+            sections.append(f"## RETORT FLOOR OPERATIONS\nUnavailable: {e}")
 
         return "\n\n".join(sections)
 

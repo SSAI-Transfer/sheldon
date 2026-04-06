@@ -170,7 +170,7 @@ class SnowflakeClient:
         found = shutil.which('snowsql')
         return found
 
-    def query(self, sql: str) -> List[Dict[str, Any]]:
+    def query(self, sql: str, timeout: int = 120) -> List[Dict[str, Any]]:
         """Execute query using SnowSQL CLI"""
         if not self.snowsql_path:
             raise RuntimeError(f"SnowSQL not found. Searched: {self.SNOWSQL_SEARCH_PATHS}. Install from https://docs.snowflake.com/en/user-guide/snowsql-install-config")
@@ -183,7 +183,7 @@ class SnowflakeClient:
             '-o', 'friendly=false'
         ]
 
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
 
         if result.returncode != 0:
             raise RuntimeError(f"SnowSQL error: {result.stderr}")
@@ -673,6 +673,59 @@ SQL_QUERIES = {
         WHERE s.STA_0 = 'A' AND c.YEA_0 = YEAR(GETDATE()) AND m.TCLCOD_0 = 'FG'
     """,
 
+    # =========================================================================
+    # INVENTORY THRESHOLD ALERTS
+    # =========================================================================
+
+    'fg_stock_by_item': """
+        SELECT
+            s.ITMREF_0 AS SKU,
+            m.ITMDES1_0 AS Description,
+            s.STOFCY_0 AS Facility,
+            SUM(s.QTYSTU_0) AS OnHand,
+            MAX(c.CSTTOT_0) AS UnitCost,
+            SUM(s.QTYSTU_0) * MAX(c.CSTTOT_0) AS StockValue
+        FROM AMQ.STOCK s
+        INNER JOIN AMQ.ITMMASTER m ON s.ITMREF_0 = m.ITMREF_0
+        INNER JOIN AMQ.ITMCOST c ON s.ITMREF_0 = c.ITMREF_0 AND s.STOFCY_0 = c.STOFCY_0
+        WHERE s.STA_0 = 'A'
+            AND c.YEA_0 = YEAR(GETDATE())
+            AND m.TCLCOD_0 = 'FG'
+        GROUP BY s.ITMREF_0, m.ITMDES1_0, s.STOFCY_0
+        HAVING SUM(s.QTYSTU_0) > 0
+    """,
+
+    'fg_consumption_30d': """
+        SELECT
+            d.ITMREF_0 AS SKU,
+            SUM(d.QTY_0) AS TotalShipped,
+            SUM(d.QTY_0) / 30.0 AS AvgDailyUsage
+        FROM AMQ.SINVOICED d
+        INNER JOIN AMQ.SINVOICE i ON d.NUM_0 = i.NUM_0
+        WHERE i.ACCDAT_0 >= DATEADD(day, -30, GETDATE())
+            AND i.STA_0 = 3
+            AND i.SIVTYP_0 = 'INV'
+            AND d.QTY_0 > 0
+        GROUP BY d.ITMREF_0
+    """,
+
+    'inventory_quality_holds': """
+        SELECT
+            s.ITMREF_0 AS SKU,
+            m.ITMDES1_0 AS Description,
+            s.STOFCY_0 AS Facility,
+            s.STA_0 AS HoldStatus,
+            SUM(s.QTYSTU_0) AS OnHold,
+            SUM(s.QTYSTU_0 * COALESCE(c.CSTTOT_0, 0)) AS HoldValue
+        FROM AMQ.STOCK s
+        INNER JOIN AMQ.ITMMASTER m ON s.ITMREF_0 = m.ITMREF_0
+        LEFT JOIN AMQ.ITMCOST c ON s.ITMREF_0 = c.ITMREF_0 AND s.STOFCY_0 = c.STOFCY_0 AND c.YEA_0 = YEAR(GETDATE())
+        WHERE s.STA_0 IN ('Q', 'QH')
+        GROUP BY s.ITMREF_0, m.ITMDES1_0, s.STOFCY_0, s.STA_0
+        HAVING SUM(s.QTYSTU_0) > 0
+        ORDER BY SUM(s.QTYSTU_0 * COALESCE(c.CSTTOT_0, 0)) DESC
+    """,
+
     'ar_aging': """
         SELECT
             COUNT(*) as InvoiceCount,
@@ -741,6 +794,178 @@ SQL_QUERIES = {
             -- Interest (71xx except 7150 and 7200)
             (SELECT SUM(DEB_1 - CDT_1) FROM AMQ.BALANCE
              WHERE ACC_0 LIKE '71%' AND ACC_0 NOT IN ('7150','7200','7205') AND FIY_0 = 23) as Interest
+    """,
+
+    # =========================================================================
+    # TIER 1 MONEY TOOLS — Sales Orders, Margins, Credits, AP, Purchase Orders
+    # =========================================================================
+
+    'open_sales_orders': """
+        SELECT
+            SOHNUM_0 AS OrderNum,
+            BPCORD_0 AS CustomerCode,
+            BPCNAM_0 AS CustomerName,
+            ORDDAT_0 AS OrderDate,
+            SHIDAT_0 AS ShipDate,
+            DEMDLVDAT_0 AS RequestedDelivery,
+            ORDATI_0 AS OrderTotal,
+            STOFCY_0 AS Facility,
+            ORDSTA_0 AS OrderStatus,
+            DLVSTA_0 AS DeliveryStatus,
+            INVSTA_0 AS InvoiceStatus
+        FROM AMQ.SORDER
+        WHERE DLVSTA_0 < 3
+          AND ORDDAT_0 >= DATEADD(year, -1, GETDATE())
+        ORDER BY DEMDLVDAT_0 ASC
+    """,
+
+    'order_backlog_summary': """
+        SELECT
+            BPCORD_0 AS CustomerCode,
+            BPCNAM_0 AS CustomerName,
+            COUNT(*) AS OpenOrders,
+            SUM(ORDATI_0) AS TotalBacklogValue,
+            MIN(DEMDLVDAT_0) AS EarliestDue,
+            SUM(CASE WHEN DEMDLVDAT_0 < GETDATE() THEN 1 ELSE 0 END) AS OverdueOrders,
+            SUM(CASE WHEN DEMDLVDAT_0 < GETDATE() THEN ORDATI_0 ELSE 0 END) AS OverdueValue,
+            SUM(CASE WHEN DEMDLVDAT_0 BETWEEN GETDATE() AND DATEADD(day, 7, GETDATE()) THEN ORDATI_0 ELSE 0 END) AS DueThisWeek,
+            SUM(CASE WHEN DEMDLVDAT_0 BETWEEN GETDATE() AND DATEADD(day, 30, GETDATE()) THEN ORDATI_0 ELSE 0 END) AS DueNext30Days
+        FROM AMQ.SORDER
+        WHERE DLVSTA_0 < 3
+          AND ORDDAT_0 >= DATEADD(year, -1, GETDATE())
+        GROUP BY BPCORD_0, BPCNAM_0
+        ORDER BY TotalBacklogValue DESC
+    """,
+
+    'margin_by_customer': """
+        SELECT TOP 20
+            i.BPR_0 AS CustomerCode,
+            i.BPRNAM_0 AS CustomerName,
+            COUNT(DISTINCT i.NUM_0) AS InvoiceCount,
+            SUM(d.AMTATILIN_0) AS Revenue,
+            SUM(d.QTY_0 * d.CPRPRI_0) AS COGS,
+            SUM(d.AMTATILIN_0) - SUM(d.QTY_0 * d.CPRPRI_0) AS GrossProfit,
+            CASE WHEN SUM(d.AMTATILIN_0) > 0
+                THEN ROUND((SUM(d.AMTATILIN_0) - SUM(d.QTY_0 * d.CPRPRI_0)) / SUM(d.AMTATILIN_0) * 100, 1)
+                ELSE 0 END AS MarginPct
+        FROM AMQ.SINVOICED d
+        INNER JOIN AMQ.SINVOICE i ON d.NUM_0 = i.NUM_0
+        WHERE i.ACCDAT_0 >= DATEADD(month, -3, GETDATE())
+          AND i.STA_0 = 3
+          AND i.SIVTYP_0 = 'INV'
+        GROUP BY i.BPR_0, i.BPRNAM_0
+        HAVING SUM(d.AMTATILIN_0) > 0
+        ORDER BY Revenue DESC
+    """,
+
+    'margin_by_product': """
+        SELECT TOP 30
+            d.ITMREF_0 AS ItemCode,
+            d.ITMDES1_0 AS ItemDescription,
+            SUM(d.QTY_0) AS QtySold,
+            SUM(d.AMTATILIN_0) AS Revenue,
+            SUM(d.QTY_0 * d.CPRPRI_0) AS COGS,
+            SUM(d.AMTATILIN_0) - SUM(d.QTY_0 * d.CPRPRI_0) AS GrossProfit,
+            CASE WHEN SUM(d.AMTATILIN_0) > 0
+                THEN ROUND((SUM(d.AMTATILIN_0) - SUM(d.QTY_0 * d.CPRPRI_0)) / SUM(d.AMTATILIN_0) * 100, 1)
+                ELSE 0 END AS MarginPct
+        FROM AMQ.SINVOICED d
+        INNER JOIN AMQ.SINVOICE i ON d.NUM_0 = i.NUM_0
+        WHERE i.ACCDAT_0 >= DATEADD(month, -3, GETDATE())
+          AND i.STA_0 = 3
+          AND i.SIVTYP_0 = 'INV'
+        GROUP BY d.ITMREF_0, d.ITMDES1_0
+        HAVING SUM(d.AMTATILIN_0) > 0
+        ORDER BY Revenue DESC
+    """,
+
+    'customer_credits': """
+        SELECT
+            BPR_0 AS CustomerCode,
+            BPRNAM_0 AS CustomerName,
+            COUNT(*) AS CreditCount,
+            SUM(AMTATI_0) AS TotalCredits,
+            MIN(ACCDAT_0) AS FirstCredit,
+            MAX(ACCDAT_0) AS LastCredit
+        FROM AMQ.SINVOICE
+        WHERE SIVTYP_0 = 'SCM'
+          AND STA_0 = 3
+          AND ACCDAT_0 >= DATEADD(month, -3, GETDATE())
+        GROUP BY BPR_0, BPRNAM_0
+        ORDER BY TotalCredits DESC
+    """,
+
+    'credits_summary': """
+        SELECT
+            COUNT(*) AS TotalCreditMemos,
+            SUM(AMTATI_0) AS TotalCreditValue,
+            SUM(CASE WHEN ACCDAT_0 >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0) THEN AMTATI_0 ELSE 0 END) AS CreditsMTD,
+            SUM(CASE WHEN ACCDAT_0 >= DATEADD(year, DATEDIFF(year, 0, GETDATE()), 0) THEN AMTATI_0 ELSE 0 END) AS CreditsYTD
+        FROM AMQ.SINVOICE
+        WHERE SIVTYP_0 = 'SCM'
+          AND STA_0 = 3
+          AND ACCDAT_0 >= DATEADD(year, -1, GETDATE())
+    """,
+
+    'ap_aging': """
+        SELECT
+            COUNT(*) AS InvoiceCount,
+            SUM(AMTATI_0) AS TotalAP,
+            SUM(CASE WHEN DATEDIFF(day, STRDUDDAT_0, GETDATE()) <= 0 THEN AMTATI_0 ELSE 0 END) AS NotYetDue,
+            SUM(CASE WHEN DATEDIFF(day, STRDUDDAT_0, GETDATE()) BETWEEN 1 AND 30 THEN AMTATI_0 ELSE 0 END) AS PastDue1to30,
+            SUM(CASE WHEN DATEDIFF(day, STRDUDDAT_0, GETDATE()) BETWEEN 31 AND 60 THEN AMTATI_0 ELSE 0 END) AS PastDue31to60,
+            SUM(CASE WHEN DATEDIFF(day, STRDUDDAT_0, GETDATE()) BETWEEN 61 AND 90 THEN AMTATI_0 ELSE 0 END) AS PastDue61to90,
+            SUM(CASE WHEN DATEDIFF(day, STRDUDDAT_0, GETDATE()) > 90 THEN AMTATI_0 ELSE 0 END) AS PastDueOver90
+        FROM AMQ.PINVOICE
+        WHERE STA_0 = 3
+          AND PIVTYP_0 = 'PIN'
+          AND ACCDAT_0 >= DATEADD(year, -1, GETDATE())
+    """,
+
+    'ap_top_vendors': """
+        SELECT TOP 15
+            BPR_0 AS VendorCode,
+            BPRNAM_0 AS VendorName,
+            COUNT(*) AS InvoiceCount,
+            SUM(AMTATI_0) AS TotalSpend,
+            SUM(CASE WHEN DATEDIFF(day, STRDUDDAT_0, GETDATE()) > 0 THEN AMTATI_0 ELSE 0 END) AS PastDueAmount
+        FROM AMQ.PINVOICE
+        WHERE STA_0 = 3
+          AND PIVTYP_0 = 'PIN'
+          AND ACCDAT_0 >= DATEADD(month, -3, GETDATE())
+        GROUP BY BPR_0, BPRNAM_0
+        ORDER BY TotalSpend DESC
+    """,
+
+    'open_purchase_orders': """
+        SELECT
+            POHNUM_0 AS PONumber,
+            BPSNUM_0 AS VendorCode,
+            BPRNAM_0 AS VendorName,
+            ORDDAT_0 AS OrderDate,
+            EXTRCPDAT1_0 AS ExpectedReceipt,
+            TOTLINAMT_0 AS POTotal,
+            STOFCY_0 AS Facility,
+            RCPFLG_0 AS ReceiptFlag,
+            INVFLG_0 AS InvoiceFlag,
+            CASE WHEN EXTRCPDAT1_0 < GETDATE() AND RCPFLG_0 < 2 THEN 1 ELSE 0 END AS IsLate
+        FROM AMQ.PORDER
+        WHERE CLEFLG_0 < 2
+          AND ORDDAT_0 >= DATEADD(year, -1, GETDATE())
+        ORDER BY EXTRCPDAT1_0 ASC
+    """,
+
+    'po_summary': """
+        SELECT
+            COUNT(*) AS OpenPOs,
+            SUM(TOTLINAMT_0) AS TotalOpenValue,
+            SUM(CASE WHEN EXTRCPDAT1_0 < GETDATE() AND RCPFLG_0 < 2 THEN 1 ELSE 0 END) AS LatePOs,
+            SUM(CASE WHEN EXTRCPDAT1_0 < GETDATE() AND RCPFLG_0 < 2 THEN TOTLINAMT_0 ELSE 0 END) AS LateValue,
+            SUM(CASE WHEN EXTRCPDAT1_0 BETWEEN GETDATE() AND DATEADD(day, 7, GETDATE()) THEN TOTLINAMT_0 ELSE 0 END) AS DueThisWeek,
+            SUM(CASE WHEN EXTRCPDAT1_0 BETWEEN GETDATE() AND DATEADD(day, 30, GETDATE()) THEN TOTLINAMT_0 ELSE 0 END) AS DueNext30Days
+        FROM AMQ.PORDER
+        WHERE CLEFLG_0 < 2
+          AND ORDDAT_0 >= DATEADD(year, -1, GETDATE())
     """
 }
 
@@ -1014,6 +1239,249 @@ DEPT_KPI_QUERIES = {
             WHERE weekVal >= DATEADD(month, -3, GETDATE())
               AND groupVal = 'FTQ'
             ORDER BY weekVal DESC
+        """
+    },
+
+    # ── Enhanced FTQ queries (Mar 2026) ──────────────────────────────
+    # Self-calculated FTQ from raw pallet data — no manual scrubbing needed.
+    # KPI_QA_CalcWeekly died Sept 2023. These go straight to source tables.
+    #
+    # KEY FINDINGS from deep-dive (Mar 30, 2026):
+    #   - Data is MONTHLY (dateVal = 1st of month), not daily/weekly
+    #   - "ALL" rows are pre-aggregated summaries — EXCLUDE to avoid double-counting
+    #   - KPI column = 'QR' (Quality Rework)
+    #   - Timestamp shows data written at month-end (e.g., Feb data written Mar 28)
+    #
+    # Issue exclusion rules (replaces Brandon's manual scrub):
+    #   EXCLUDE: Release, Released, Customer Requested Hold,
+    #            plain "Submittal" (routine USDA samples), "qa samples"
+    #   INCLUDE: Rework, Destroy, PRODUCT QUALITY, RW#### QA FAILURE,
+    #            "Submittal - USDA FAILURE" (actual failures),
+    #            "FSIS MONTHLY TESTING" (regulatory w/ rework#)
+    #   UNCLASSIFIED: blank issue rows with real pallet counts
+
+    'qual_ftq_by_contract_monthly': {
+        'database': 'ci',
+        'department': 'Quality',
+        'notes': 'Monthly FTQ by contract, self-calculated. Excludes ALL summary rows.',
+        'sql': """
+            SELECT
+                dateVal AS month,
+                cont,
+                SUM(prodPallets) AS total_pallets,
+                SUM(badPallets) AS bad_pallets,
+                SUM(prodEaches) AS total_eaches,
+                SUM(badEaches) AS bad_eaches,
+                CASE WHEN SUM(prodPallets) > 0
+                     THEN ROUND((1.0 - CAST(SUM(badPallets) AS FLOAT) / SUM(prodPallets)) * 100, 2)
+                     ELSE 100.0 END AS ftq_pct
+            FROM db_accessadmin.KPI_QA_OverallQuality_Contract
+            WHERE dateVal >= DATEADD(month, -6, GETDATE())
+              AND cont != 'ALL'
+            GROUP BY dateVal, cont
+            ORDER BY dateVal DESC, cont
+        """
+    },
+
+    'qual_ftq_plant_monthly': {
+        'database': 'ci',
+        'department': 'Quality',
+        'notes': 'Monthly plant-wide FTQ. Excludes ALL summary rows — sums individual contracts.',
+        'sql': """
+            SELECT
+                dateVal AS month,
+                SUM(prodPallets) AS total_pallets,
+                SUM(badPallets) AS bad_pallets,
+                SUM(prodEaches) AS total_eaches,
+                SUM(badEaches) AS bad_eaches,
+                CASE WHEN SUM(prodPallets) > 0
+                     THEN ROUND((1.0 - CAST(SUM(badPallets) AS FLOAT) / SUM(prodPallets)) * 100, 2)
+                     ELSE 100.0 END AS ftq_pct
+            FROM db_accessadmin.KPI_QA_OverallQuality_Contract
+            WHERE dateVal >= DATEADD(month, -12, GETDATE())
+              AND cont != 'ALL'
+            GROUP BY dateVal
+            ORDER BY dateVal DESC
+        """
+    },
+
+    'qual_ftq_issue_breakdown': {
+        'database': 'ci',
+        'department': 'Quality',
+        'notes': 'FTQ issue breakdown with counts_against_ftq flag. Replaces manual scrubbing.',
+        'sql': """
+            SELECT
+                CASE
+                    WHEN issue LIKE '%DESTROY%' OR issue LIKE '%destroy%'
+                         OR issue LIKE '%visual destroy%'                       THEN 'Destroy'
+                    WHEN issue LIKE 'Rework%' OR issue LIKE 'RW[0-9]%'         THEN 'Rework / QA Failure'
+                    WHEN issue LIKE '%CUSTOMER%REQUEST%'                        THEN 'Customer Requested'
+                    WHEN issue IN ('Release', 'Released')                       THEN 'Release'
+                    WHEN issue = 'Submittal' OR issue = 'qa samples'           THEN 'Submittal (routine)'
+                    WHEN issue LIKE 'Submittal%FAILURE%'                        THEN 'Submittal (USDA failure)'
+                    WHEN issue LIKE 'FSIS%'                                     THEN 'FSIS Testing'
+                    WHEN issue LIKE 'PRODUCT QUALITY%'                          THEN 'Product Quality'
+                    WHEN issue IS NULL OR LTRIM(RTRIM(issue)) = ''             THEN 'Unclassified (blank)'
+                    ELSE 'Other'
+                END AS issue_category,
+                CASE
+                    WHEN issue IN ('Release', 'Released')                       THEN 0
+                    WHEN issue LIKE '%CUSTOMER%REQUEST%'                        THEN 0
+                    WHEN issue = 'Submittal' OR issue = 'qa samples'           THEN 0
+                    WHEN issue IS NULL AND cont = 'ALL'                        THEN 0
+                    ELSE 1
+                END AS counts_against_ftq,
+                COUNT(*) AS occurrences,
+                SUM(issueQtyPal) AS issue_pallets,
+                SUM(issueQtyEa) AS issue_eaches,
+                COUNT(DISTINCT cont) AS contracts_affected
+            FROM db_accessadmin.KPI_QA_OverallQuality_Rework
+            WHERE dateVal >= DATEADD(month, -3, GETDATE())
+              AND cont != 'ALL'
+            GROUP BY
+                CASE
+                    WHEN issue LIKE '%DESTROY%' OR issue LIKE '%destroy%'
+                         OR issue LIKE '%visual destroy%'                       THEN 'Destroy'
+                    WHEN issue LIKE 'Rework%' OR issue LIKE 'RW[0-9]%'         THEN 'Rework / QA Failure'
+                    WHEN issue LIKE '%CUSTOMER%REQUEST%'                        THEN 'Customer Requested'
+                    WHEN issue IN ('Release', 'Released')                       THEN 'Release'
+                    WHEN issue = 'Submittal' OR issue = 'qa samples'           THEN 'Submittal (routine)'
+                    WHEN issue LIKE 'Submittal%FAILURE%'                        THEN 'Submittal (USDA failure)'
+                    WHEN issue LIKE 'FSIS%'                                     THEN 'FSIS Testing'
+                    WHEN issue LIKE 'PRODUCT QUALITY%'                          THEN 'Product Quality'
+                    WHEN issue IS NULL OR LTRIM(RTRIM(issue)) = ''             THEN 'Unclassified (blank)'
+                    ELSE 'Other'
+                END,
+                CASE
+                    WHEN issue IN ('Release', 'Released')                       THEN 0
+                    WHEN issue LIKE '%CUSTOMER%REQUEST%'                        THEN 0
+                    WHEN issue = 'Submittal' OR issue = 'qa samples'           THEN 0
+                    WHEN issue IS NULL AND cont = 'ALL'                        THEN 0
+                    ELSE 1
+                END
+            ORDER BY issue_pallets DESC
+        """
+    },
+
+    'qual_ftq_corrected': {
+        'database': 'ci',
+        'department': 'Quality',
+        'notes': 'Corrected monthly FTQ — excludes Release, Customer Requested, routine Submittal from bad pallets.',
+        'sql': """
+            SELECT
+                c.dateVal AS month,
+                c.total_pallets,
+                c.bad_pallets AS raw_bad_pallets,
+                COALESCE(x.excluded_pallets, 0) AS excluded_pallets,
+                c.bad_pallets - COALESCE(x.excluded_pallets, 0) AS corrected_bad_pallets,
+                CASE WHEN c.total_pallets > 0
+                     THEN ROUND((1.0 - CAST(c.bad_pallets AS FLOAT) / c.total_pallets) * 100, 2)
+                     ELSE 100.0 END AS raw_ftq_pct,
+                CASE WHEN c.total_pallets > 0
+                     THEN ROUND((1.0 - CAST((c.bad_pallets - COALESCE(x.excluded_pallets, 0)) AS FLOAT) / c.total_pallets) * 100, 2)
+                     ELSE 100.0 END AS corrected_ftq_pct
+            FROM (
+                SELECT dateVal,
+                       SUM(prodPallets) AS total_pallets,
+                       SUM(badPallets) AS bad_pallets
+                FROM db_accessadmin.KPI_QA_OverallQuality_Contract
+                WHERE dateVal >= DATEADD(month, -12, GETDATE())
+                  AND cont != 'ALL'
+                GROUP BY dateVal
+            ) c
+            LEFT JOIN (
+                SELECT dateVal,
+                       SUM(issueQtyPal) AS excluded_pallets
+                FROM db_accessadmin.KPI_QA_OverallQuality_Rework
+                WHERE dateVal >= DATEADD(month, -12, GETDATE())
+                  AND cont != 'ALL'
+                  AND (
+                      issue IN ('Release', 'Released')
+                      OR issue LIKE '%CUSTOMER%REQUEST%'
+                      OR issue = 'Submittal'
+                      OR issue = 'qa samples'
+                  )
+                GROUP BY dateVal
+            ) x ON c.dateVal = x.dateVal
+            ORDER BY c.dateVal DESC
+        """
+    },
+
+    'qual_ftq_issue_detail': {
+        'database': 'ci',
+        'department': 'Quality',
+        'notes': 'Raw FTQ issue rows — drill-down detail. Uses 2-month lookback since data is monthly.',
+        'sql': """
+            SELECT
+                dateVal,
+                cont,
+                item,
+                lot,
+                issueQtyPal,
+                issueQtyEa,
+                prodQtyPal,
+                prodQtyEa,
+                issue,
+                CASE
+                    WHEN issue IN ('Release', 'Released')      THEN 'EXCLUDE'
+                    WHEN issue LIKE '%CUSTOMER%REQUEST%'        THEN 'EXCLUDE'
+                    WHEN issue = 'Submittal'                    THEN 'EXCLUDE'
+                    WHEN issue = 'qa samples'                   THEN 'EXCLUDE'
+                    ELSE 'COUNTS'
+                END AS ftq_flag
+            FROM db_accessadmin.KPI_QA_OverallQuality_Rework
+            WHERE dateVal >= DATEADD(month, -2, GETDATE())
+              AND cont != 'ALL'
+            ORDER BY dateVal DESC, issueQtyPal DESC
+        """
+    },
+
+    'qual_ftq_worst_items': {
+        'database': 'ci',
+        'department': 'Quality',
+        'notes': 'Worst-performing items by FTQ — only counts real quality failures.',
+        'sql': """
+            SELECT TOP 20
+                item,
+                cont,
+                COUNT(*) AS issue_count,
+                SUM(issueQtyPal) AS total_bad_pallets,
+                SUM(issueQtyEa) AS total_bad_eaches,
+                SUM(prodQtyPal) AS total_prod_pallets,
+                CASE WHEN SUM(prodQtyPal) > 0
+                     THEN ROUND((1.0 - CAST(SUM(issueQtyPal) AS FLOAT) / SUM(prodQtyPal)) * 100, 2)
+                     ELSE 100.0 END AS ftq_pct
+            FROM db_accessadmin.KPI_QA_OverallQuality_Rework
+            WHERE dateVal >= DATEADD(month, -3, GETDATE())
+              AND cont != 'ALL'
+              AND issue NOT IN ('Release', 'Released')
+              AND issue NOT LIKE '%CUSTOMER%REQUEST%'
+              AND issue != 'Submittal'
+              AND issue != 'qa samples'
+              AND (issue IS NOT NULL AND LTRIM(RTRIM(issue)) != '')
+            GROUP BY item, cont
+            HAVING SUM(issueQtyPal) > 0
+            ORDER BY total_bad_pallets DESC
+        """
+    },
+
+    'qual_ftq_hold_cost': {
+        'database': 'ci',
+        'department': 'Quality',
+        'notes': 'Quality hold cost by contract from OverdueReleases — daily data, current.',
+        'sql': """
+            SELECT
+                cont,
+                COUNT(DISTINCT item) AS items_held,
+                COUNT(DISTINCT lot) AS lots_held,
+                SUM(pallets) AS total_pallet_days,
+                SUM(units) AS total_unit_days,
+                MAX(QttlCost) AS max_single_hold_cost,
+                AVG(overdueMult) AS avg_overdue_mult
+            FROM db_accessadmin.KPI_QA_OverdueReleases
+            WHERE dateVal >= DATEADD(day, -7, GETDATE())
+            GROUP BY cont
+            ORDER BY max_single_hold_cost DESC
         """
     },
 
@@ -1469,6 +1937,28 @@ DEPT_KPI_QUERIES = {
         """
     },
 
+    'proc_inventory_expiring': {
+        'database': 'ci',
+        'department': 'Procurement',
+        'notes': 'Items expiring or expired from KPI_PROC_Inventory — item-level detail for threshold alerts.',
+        'sql': """
+            SELECT
+                item,
+                descr,
+                site,
+                type,
+                SUM(aQty) AS available,
+                SUM(expQty) AS expired,
+                SUM(exp60days) AS expiring_60days,
+                SUM(cost) AS total_cost
+            FROM db_accessadmin.KPI_PROC_Inventory
+            WHERE expQty > 0 OR exp60days > 0
+            GROUP BY item, descr, site, type
+            HAVING SUM(expQty) > 0 OR SUM(exp60days) > 0
+            ORDER BY SUM(exp60days) + SUM(expQty) DESC
+        """
+    },
+
     'proc_schedule_changes': {
         'database': 'ci',
         'department': 'Procurement',
@@ -1807,9 +2297,14 @@ def generate_sop():
                 'work_orders': sop_result.get('work_order_count', 0)
             })
         else:
+            err_msg = sop_result.get('message', 'S&OP generation failed.') if sop_result else 'No output from generator.'
+            app.logger.error('S&OP generate failed: %s | stdout: %s | stderr: %s',
+                             err_msg,
+                             result.stdout[-500:] if result.stdout else '(none)',
+                             result.stderr[-500:] if result.stderr else '(none)')
             return jsonify({
                 'status': 'error',
-                'message': sop_result.get('message', 'S&OP generation failed.') if sop_result else 'No output from generator.',
+                'message': err_msg,
                 'stdout': result.stdout[-500:] if result.stdout else '',
                 'stderr': result.stderr[-500:] if result.stderr else ''
             }), 500
@@ -2128,6 +2623,13 @@ def get_all_dept_kpis():
         # Quality
         ('quality', 'overallQuality', 'qual_overall_quality'),
         ('quality', 'firstTimeQuality', 'qual_first_time_quality'),
+        ('quality', 'ftqByContractMonthly', 'qual_ftq_by_contract_monthly'),
+        ('quality', 'ftqPlantMonthly', 'qual_ftq_plant_monthly'),
+        ('quality', 'ftqCorrected', 'qual_ftq_corrected'),
+        ('quality', 'ftqIssueBreakdown', 'qual_ftq_issue_breakdown'),
+        ('quality', 'ftqIssueDetail', 'qual_ftq_issue_detail'),
+        ('quality', 'ftqWorstItems', 'qual_ftq_worst_items'),
+        ('quality', 'ftqHoldCost', 'qual_ftq_hold_cost'),
         ('quality', 'overdueReleases', 'qual_overdue_releases'),
         ('quality', 'foreignMatter', 'qual_foreign_matter'),
         ('quality', 'reworkLog', 'qual_rework_log'),
@@ -2543,6 +3045,112 @@ def get_finished_goods():
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/inventory/threshold-alerts', methods=['GET'])
+def get_inventory_threshold_alerts():
+    """Get inventory threshold alerts: low-stock FG items, quality holds, expiring items.
+    Query param: ?days=7 (default 7-day supply threshold)"""
+    threshold_days = int(request.args.get('days', 7))
+    result = {
+        'timestamp': datetime.now().isoformat(),
+        'thresholdDays': threshold_days,
+        'belowThreshold': 0,
+        'alerts': [],
+        'qualityHolds': [],
+        'qualityHoldCount': 0,
+        'qualityHoldValue': 0,
+        'expiring': [],
+        'expiringCount': 0,
+    }
+
+    # ── Prong 1: FG items with days supply below threshold ──
+    try:
+        stock_data = sage_client.query(SQL_QUERIES['fg_stock_by_item'])
+        consumption_data = sage_client.query(SQL_QUERIES['fg_consumption_30d'])
+
+        # Build lookup: SKU -> avg daily usage
+        usage_map = {}
+        for row in consumption_data:
+            sku = row.get('SKU', '')
+            daily = float(row.get('AvgDailyUsage', 0))
+            if sku and daily > 0:
+                usage_map[sku] = usage_map.get(sku, 0) + daily
+
+        alerts = []
+        for row in stock_data:
+            sku = row.get('SKU', '')
+            on_hand = float(row.get('OnHand', 0))
+            unit_cost = float(row.get('UnitCost', 0))
+            daily_usage = usage_map.get(sku, 0)
+
+            if daily_usage > 0:
+                days_supply = round(on_hand / daily_usage, 1)
+                if days_supply <= threshold_days:
+                    alerts.append({
+                        'sku': sku,
+                        'description': row.get('Description', ''),
+                        'facility': row.get('Facility', ''),
+                        'onHand': on_hand,
+                        'unitCost': unit_cost,
+                        'stockValue': round(on_hand * unit_cost, 2),
+                        'avgDailyUsage': round(daily_usage, 1),
+                        'daysSupply': days_supply,
+                        'status': 'CRITICAL' if days_supply <= 3 else 'LOW',
+                    })
+
+        # Sort by days supply ascending (most urgent first)
+        alerts.sort(key=lambda x: x['daysSupply'])
+        result['alerts'] = alerts[:50]  # Top 50 most urgent
+        result['belowThreshold'] = len(alerts)
+    except Exception as e:
+        result['stockError'] = str(e)[:200]
+
+    # ── Prong 2: Quality holds ──
+    try:
+        holds = sage_client.query(SQL_QUERIES['inventory_quality_holds'])
+        hold_list = []
+        total_hold_value = 0
+        for row in holds[:30]:
+            val = float(row.get('HoldValue', 0))
+            total_hold_value += val
+            hold_list.append({
+                'sku': row.get('SKU', ''),
+                'description': row.get('Description', ''),
+                'facility': row.get('Facility', ''),
+                'holdStatus': row.get('HoldStatus', ''),
+                'onHold': float(row.get('OnHold', 0)),
+                'holdValue': round(val, 2),
+            })
+        result['qualityHolds'] = hold_list
+        result['qualityHoldCount'] = len(holds)
+        result['qualityHoldValue'] = round(total_hold_value, 2)
+    except Exception as e:
+        result['holdsError'] = str(e)[:200]
+
+    # ── Prong 3: Expiring inventory from CI database ──
+    try:
+        query_def = DEPT_KPI_QUERIES.get('proc_inventory_expiring')
+        if query_def and query_def.get('sql'):
+            exp_data = internal_db.query(query_def['sql'], database=query_def['database'])
+            exp_list = []
+            for row in exp_data[:30]:
+                exp_list.append({
+                    'item': row.get('item', ''),
+                    'description': row.get('descr', ''),
+                    'site': row.get('site', ''),
+                    'type': row.get('type', ''),
+                    'available': float(row.get('available', 0)),
+                    'expired': float(row.get('expired', 0)),
+                    'expiring60d': float(row.get('expiring_60days', 0)),
+                    'cost': float(row.get('total_cost', 0)),
+                })
+            result['expiring'] = exp_list
+            result['expiringCount'] = len(exp_data)
+    except Exception as e:
+        result['expiringError'] = str(e)[:200]
+
+    return jsonify(result)
+
 
 @app.route('/api/ar/aging', methods=['GET'])
 def get_ar_aging():
@@ -3094,12 +3702,24 @@ def prefetch_data():
 
     with ThreadPoolExecutor(max_workers=8) as executor:
         futures = {executor.submit(fn): fn.__name__ for fn in tasks}
-        for future in as_completed(futures, timeout=45):
-            try:
-                key, value = future.result()
-                result[key] = value
-            except Exception:
-                pass  # Individual failures are non-critical
+        try:
+            for future in as_completed(futures, timeout=45):
+                try:
+                    key, value = future.result()
+                    result[key] = value
+                except Exception:
+                    pass  # Individual failures are non-critical
+        except TimeoutError:
+            # Collect any results that finished before the timeout
+            for future, name in futures.items():
+                if future.done() and not future.exception():
+                    try:
+                        key, value = future.result()
+                        result[key] = value
+                    except Exception:
+                        pass
+            app.logger.warning('Prefetch: %d of %d tasks timed out — returning partial data',
+                               sum(1 for f in futures if not f.done()), len(futures))
 
     # Fill any missing keys with None
     for key in ['plantOEE', 'oeeByLine', 'redFlags', 'topDowntime', 'financials', 'inventory', 'qualityPipeline', 'sopStatus']:
@@ -3112,22 +3732,47 @@ def prefetch_data():
 # CHIEF OF STAFF ENDPOINTS
 # ============================================
 
+# Briefing cache — avoids 60-second regeneration on every load
+_briefing_cache = {
+    'data': None,
+    'timestamp': None
+}
+BRIEFING_CACHE_TTL = 1800  # 30 minutes
+
 @app.route('/api/chief-of-staff/brief', methods=['GET'])
 def chief_of_staff_brief():
     """Generate comprehensive Chief of Staff morning briefing.
-    Pulls from ALL data systems and synthesizes with Claude AI."""
+    Pulls from ALL data systems and synthesizes with Claude AI.
+    Cached for 30 minutes — pass ?force=true to regenerate."""
     if not BRAIN_AVAILABLE:
         return jsonify({'error': 'SHELDON Brain not available', 'message': 'Claude AI engine required for Chief of Staff briefing.'}), 503
 
+    force = request.args.get('force', '').lower() in ('true', '1', 'yes')
+
+    # Serve cached briefing if fresh enough
+    if not force and _briefing_cache['data'] and _briefing_cache['timestamp']:
+        age = (datetime.now() - _briefing_cache['timestamp']).total_seconds()
+        if age < BRIEFING_CACHE_TTL:
+            cached = dict(_briefing_cache['data'])
+            cached['cached'] = True
+            cached['cached_at'] = _briefing_cache['timestamp'].isoformat()
+            cached['age_seconds'] = int(age)
+            return jsonify(cached)
+
     try:
         result = sheldon_brain.generate_morning_brief()
-        return jsonify({
+        payload = {
             'timestamp': datetime.now().isoformat(),
             'briefing': result['response'],
             'tools_used': result.get('tools_used', []),
             'data_sources': result.get('data_sources', []),
-            'engine': 'claude_chief_of_staff'
-        })
+            'engine': 'claude_chief_of_staff',
+            'cached': False
+        }
+        # Store in cache
+        _briefing_cache['data'] = payload
+        _briefing_cache['timestamp'] = datetime.now()
+        return jsonify(payload)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -3166,6 +3811,226 @@ def quality_pipeline():
         'pipeline': pipeline,
         'source': 'donna_qa_system'
     })
+
+@app.route('/api/quality/ftq', methods=['GET'])
+def quality_ftq():
+    """Comprehensive First Time Quality endpoint.
+
+    Returns plant-wide FTQ, contract breakdown, issue categories,
+    worst-performing items, and recent detail rows — all self-calculated
+    from CI database pallet data. No manual scrubbing required.
+
+    Query params:
+        months: lookback period (default 3)
+    """
+    months = request.args.get('months', 3, type=int)
+
+    ftq_queries = {
+        # Monthly plant-wide FTQ trend (excludes ALL summary rows)
+        'monthly_trend': """
+            SELECT
+                dateVal AS month,
+                SUM(prodPallets) AS total_pallets,
+                SUM(badPallets) AS bad_pallets,
+                SUM(prodEaches) AS total_eaches,
+                SUM(badEaches) AS bad_eaches,
+                CASE WHEN SUM(prodPallets) > 0
+                     THEN ROUND((1.0 - CAST(SUM(badPallets) AS FLOAT) / SUM(prodPallets)) * 100, 2)
+                     ELSE 100.0 END AS ftq_pct
+            FROM db_accessadmin.KPI_QA_OverallQuality_Contract
+            WHERE dateVal >= DATEADD(month, -{months}, GETDATE())
+              AND cont != 'ALL'
+            GROUP BY dateVal
+            ORDER BY dateVal DESC
+        """,
+        # Corrected FTQ — subtracts excluded issues (Release, Customer Hold, routine Submittal)
+        'monthly_corrected': """
+            SELECT
+                c.dateVal AS month,
+                c.total_pallets,
+                c.bad_pallets AS raw_bad_pallets,
+                COALESCE(x.excluded_pallets, 0) AS excluded_pallets,
+                c.bad_pallets - COALESCE(x.excluded_pallets, 0) AS corrected_bad_pallets,
+                CASE WHEN c.total_pallets > 0
+                     THEN ROUND((1.0 - CAST(c.bad_pallets AS FLOAT) / c.total_pallets) * 100, 2)
+                     ELSE 100.0 END AS raw_ftq_pct,
+                CASE WHEN c.total_pallets > 0
+                     THEN ROUND((1.0 - CAST((c.bad_pallets - COALESCE(x.excluded_pallets, 0)) AS FLOAT) / c.total_pallets) * 100, 2)
+                     ELSE 100.0 END AS corrected_ftq_pct
+            FROM (
+                SELECT dateVal,
+                       SUM(prodPallets) AS total_pallets,
+                       SUM(badPallets) AS bad_pallets
+                FROM db_accessadmin.KPI_QA_OverallQuality_Contract
+                WHERE dateVal >= DATEADD(month, -{months}, GETDATE())
+                  AND cont != 'ALL'
+                GROUP BY dateVal
+            ) c
+            LEFT JOIN (
+                SELECT dateVal,
+                       SUM(issueQtyPal) AS excluded_pallets
+                FROM db_accessadmin.KPI_QA_OverallQuality_Rework
+                WHERE dateVal >= DATEADD(month, -{months}, GETDATE())
+                  AND cont != 'ALL'
+                  AND (
+                      issue IN ('Release', 'Released')
+                      OR issue LIKE '%CUSTOMER%REQUEST%'
+                      OR issue = 'Submittal'
+                      OR issue = 'qa samples'
+                  )
+                GROUP BY dateVal
+            ) x ON c.dateVal = x.dateVal
+            ORDER BY c.dateVal DESC
+        """,
+        # FTQ by contract (excludes ALL row)
+        'by_contract': """
+            SELECT
+                cont,
+                SUM(prodPallets) AS total_pallets,
+                SUM(badPallets) AS bad_pallets,
+                CASE WHEN SUM(prodPallets) > 0
+                     THEN ROUND((1.0 - CAST(SUM(badPallets) AS FLOAT) / SUM(prodPallets)) * 100, 2)
+                     ELSE 100.0 END AS ftq_pct,
+                SUM(prodEaches) AS total_eaches,
+                SUM(badEaches) AS bad_eaches
+            FROM db_accessadmin.KPI_QA_OverallQuality_Contract
+            WHERE dateVal >= DATEADD(month, -{months}, GETDATE())
+              AND cont != 'ALL'
+            GROUP BY cont
+            ORDER BY bad_pallets DESC
+        """,
+        # Issue breakdown with counts_against_ftq flag
+        'issue_breakdown': """
+            SELECT
+                CASE
+                    WHEN issue LIKE '%DESTROY%' OR issue LIKE '%destroy%'
+                         OR issue LIKE '%visual destroy%'                       THEN 'Destroy'
+                    WHEN issue LIKE 'Rework%' OR issue LIKE 'RW[0-9]%'         THEN 'Rework / QA Failure'
+                    WHEN issue LIKE '%CUSTOMER%REQUEST%'                        THEN 'Customer Requested'
+                    WHEN issue IN ('Release', 'Released')                       THEN 'Release'
+                    WHEN issue = 'Submittal' OR issue = 'qa samples'           THEN 'Submittal (routine)'
+                    WHEN issue LIKE 'Submittal%FAILURE%'                        THEN 'Submittal (USDA failure)'
+                    WHEN issue LIKE 'FSIS%'                                     THEN 'FSIS Testing'
+                    WHEN issue LIKE 'PRODUCT QUALITY%'                          THEN 'Product Quality'
+                    WHEN issue IS NULL OR LTRIM(RTRIM(issue)) = ''             THEN 'Unclassified (blank)'
+                    ELSE 'Other'
+                END AS issue_category,
+                CASE
+                    WHEN issue IN ('Release', 'Released')                       THEN 0
+                    WHEN issue LIKE '%CUSTOMER%REQUEST%'                        THEN 0
+                    WHEN issue = 'Submittal' OR issue = 'qa samples'           THEN 0
+                    ELSE 1
+                END AS counts_against_ftq,
+                COUNT(*) AS occurrences,
+                SUM(issueQtyPal) AS issue_pallets,
+                SUM(issueQtyEa) AS issue_eaches,
+                COUNT(DISTINCT cont) AS contracts_affected
+            FROM db_accessadmin.KPI_QA_OverallQuality_Rework
+            WHERE dateVal >= DATEADD(month, -{months}, GETDATE())
+              AND cont != 'ALL'
+            GROUP BY
+                CASE
+                    WHEN issue LIKE '%DESTROY%' OR issue LIKE '%destroy%'
+                         OR issue LIKE '%visual destroy%'                       THEN 'Destroy'
+                    WHEN issue LIKE 'Rework%' OR issue LIKE 'RW[0-9]%'         THEN 'Rework / QA Failure'
+                    WHEN issue LIKE '%CUSTOMER%REQUEST%'                        THEN 'Customer Requested'
+                    WHEN issue IN ('Release', 'Released')                       THEN 'Release'
+                    WHEN issue = 'Submittal' OR issue = 'qa samples'           THEN 'Submittal (routine)'
+                    WHEN issue LIKE 'Submittal%FAILURE%'                        THEN 'Submittal (USDA failure)'
+                    WHEN issue LIKE 'FSIS%'                                     THEN 'FSIS Testing'
+                    WHEN issue LIKE 'PRODUCT QUALITY%'                          THEN 'Product Quality'
+                    WHEN issue IS NULL OR LTRIM(RTRIM(issue)) = ''             THEN 'Unclassified (blank)'
+                    ELSE 'Other'
+                END,
+                CASE
+                    WHEN issue IN ('Release', 'Released')                       THEN 0
+                    WHEN issue LIKE '%CUSTOMER%REQUEST%'                        THEN 0
+                    WHEN issue = 'Submittal' OR issue = 'qa samples'           THEN 0
+                    ELSE 1
+                END
+            ORDER BY issue_pallets DESC
+        """,
+        # Worst items (only real quality failures)
+        'worst_items': """
+            SELECT TOP 20
+                item, cont,
+                COUNT(*) AS issue_count,
+                SUM(issueQtyPal) AS total_bad_pallets,
+                SUM(issueQtyEa) AS total_bad_eaches,
+                SUM(prodQtyPal) AS total_prod_pallets
+            FROM db_accessadmin.KPI_QA_OverallQuality_Rework
+            WHERE dateVal >= DATEADD(month, -{months}, GETDATE())
+              AND cont != 'ALL'
+              AND issue NOT IN ('Release', 'Released')
+              AND issue NOT LIKE '%CUSTOMER%REQUEST%'
+              AND issue != 'Submittal'
+              AND issue != 'qa samples'
+              AND (issue IS NOT NULL AND LTRIM(RTRIM(issue)) != '')
+            GROUP BY item, cont
+            HAVING SUM(issueQtyPal) > 0
+            ORDER BY total_bad_pallets DESC
+        """,
+        # Detail rows (last 2 months since data is monthly)
+        'recent_detail': """
+            SELECT TOP 50
+                dateVal, cont, item, lot,
+                issueQtyPal, issueQtyEa, prodQtyPal, prodQtyEa,
+                issue,
+                CASE
+                    WHEN issue IN ('Release', 'Released')      THEN 'EXCLUDE'
+                    WHEN issue LIKE '%CUSTOMER%REQUEST%'        THEN 'EXCLUDE'
+                    WHEN issue = 'Submittal'                    THEN 'EXCLUDE'
+                    WHEN issue = 'qa samples'                   THEN 'EXCLUDE'
+                    ELSE 'COUNTS'
+                END AS ftq_flag
+            FROM db_accessadmin.KPI_QA_OverallQuality_Rework
+            WHERE dateVal >= DATEADD(month, -2, GETDATE())
+              AND cont != 'ALL'
+            ORDER BY dateVal DESC, issueQtyPal DESC
+        """,
+        # Distinct issue values
+        'issue_values': """
+            SELECT issue, COUNT(*) AS cnt
+            FROM db_accessadmin.KPI_QA_OverallQuality_Rework
+            WHERE dateVal >= DATEADD(month, -{months}, GETDATE())
+              AND cont != 'ALL'
+            GROUP BY issue
+            ORDER BY cnt DESC
+        """,
+        # Quality hold cost (daily data — most current source)
+        'hold_cost': """
+            SELECT
+                cont,
+                COUNT(DISTINCT item) AS items_held,
+                COUNT(DISTINCT lot) AS lots_held,
+                SUM(pallets) AS total_pallet_days,
+                MAX(QttlCost) AS max_single_hold_cost,
+                AVG(overdueMult) AS avg_overdue_mult
+            FROM db_accessadmin.KPI_QA_OverdueReleases
+            WHERE dateVal >= DATEADD(day, -7, GETDATE())
+            GROUP BY cont
+            ORDER BY max_single_hold_cost DESC
+        """,
+    }
+
+    result = {
+        'timestamp': datetime.now().isoformat(),
+        'lookback_months': months,
+        'data': {},
+        'errors': []
+    }
+
+    for key, sql in ftq_queries.items():
+        rendered_sql = sql.replace('{months}', str(months))
+        try:
+            data = internal_db.query(rendered_sql, database='ci')
+            result['data'][key] = data
+        except Exception as e:
+            result['data'][key] = None
+            result['errors'].append(f'{key}: {str(e)[:200]}')
+
+    return jsonify(result)
+
 
 @app.route('/api/quality/defects', methods=['GET'])
 def quality_defects():
